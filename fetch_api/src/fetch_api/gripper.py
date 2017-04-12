@@ -27,7 +27,7 @@ class Gripper(object):
         # TODO: Create goal
         goal = control_msgs.msg.GripperCommandGoal()
         goal.command.position = OPENED_POS
-        goal.command.max_effort = Gripper.MIN_EFFORT
+        goal.command.max_effort = Gripper.MAX_EFFORT
         
         # TODO: Send goal
         self.client.send_goal(goal)
@@ -45,7 +45,7 @@ class Gripper(object):
         # TODO: Create goal
         goal = control_msgs.msg.GripperCommandGoal()
         goal.command.position = CLOSED_POS
-        goal.command.max_effort = Gripper.MAX_EFFORT
+        goal.command.max_effort = max_effort
 
         # TODO: Send goal
         self.client.send_goal(goal)
