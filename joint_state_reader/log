@@ -1,0 +1,42 @@
+----------------------------------------------------------
+Profile:                     default
+Extending:          [cached] /opt/ros/indigo
+Workspace:                   /home/team2/catkin_ws
+----------------------------------------------------------
+Source Space:       [exists] /home/team2/catkin_ws/src
+Log Space:          [exists] /home/team2/catkin_ws/logs
+Build Space:        [exists] /home/team2/catkin_ws/build
+Devel Space:        [exists] /home/team2/catkin_ws/devel
+Install Space:      [unused] /home/team2/catkin_ws/install
+DESTDIR:            [unused] None
+----------------------------------------------------------
+Devel Space Layout:          linked
+Install Space Layout:        None
+----------------------------------------------------------
+Additional CMake Args:       None
+Additional Make Args:        None
+Additional catkin Make Args: None
+Internal Make Job Server:    True
+Cache Job Environments:      False
+----------------------------------------------------------
+Whitelisted Packages:        None
+Blacklisted Packages:        None
+----------------------------------------------------------
+Workspace configuration appears valid.
+----------------------------------------------------------
+[build] Found '4' packages in 0.0 seconds.                                                            
+[build] Package table is up to date.                                                                  
+Starting >>> fetch_api                                                                                
+Starting >>> joint_state_publisher                                                                    
+Finished <<< fetch_api                            [ 0.1 seconds ]                                     
+Starting >>> applications                                                                             
+Starting >>> web_teleop                                                                               
+[build 0.1 s] [1/4 complete] [3/8 jobs] [2 queued] [joint_state_publisher:loadenv - 0.0]              [build 0.2 s] [1/4 complete] [3/8 jobs] [0 queued] [applications:loadenv - 0.0] [web_teleop:cmake ... Finished <<< applications                         [ 0.1 seconds ]                                     
+[build 0.3 s] [2/4 complete] [2/8 jobs] [0 queued] [web_teleop:cmake - 0.2] [joint_state_publisher... [build 0.4 s] [2/4 complete] [2/8 jobs] [0 queued] [web_teleop:cmake - 0.3] [joint_state_publisher... [build 0.5 s] [2/4 complete] [2/8 jobs] [0 queued] [web_teleop:cmake - 0.4] [joint_state_publisher... Failed <<< web_teleop                           [ 0.4 seconds ]                                       
+Failed <<< joint_state_publisher                [ 0.5 seconds ]                                       
+[build] Summary: 2 of 4 packages succeeded.                                                           
+[build] Ignored: None.                                                                                
+[build] Warnings: None.                                                                               
+[build] Abandoned: No packages were abandoned.                                                        
+[build] Failed: 2 packages failed.                                                                    
+[build] Runtime: 0.6 seconds total.                                                                   
