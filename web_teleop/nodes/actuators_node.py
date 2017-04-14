@@ -34,11 +34,9 @@ class ActuatorServer(object):
         else:
             self._gripper.close(request.max_effort)
         return SetGripperResponse()
-"""
     def handle_set_head(self, request):
-        # TODO
+        self._head.pan_tilt(request.pan, request.tilt)
         return SetHeadResponse()
-"""
 
 def main():
     rospy.init_node('web_teleop_actuators')
@@ -50,6 +48,8 @@ def main():
                                     server.handle_set_gripper)
     arm_service = rospy.Service('web_teleop/set_arm', SetArm,
                                     server.handle_set_arm)
+    head_service = rospy.Service('web_teleop/set_head', SetHead,
+                                    server.handle_set_head)
     rospy.spin()
 
 

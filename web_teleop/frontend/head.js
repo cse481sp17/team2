@@ -10,31 +10,22 @@ Head = function(ros) {
   var that = this;
 
   // Public variables
-  this.yawSpeed = 0.25;
-  this.pitchSpeed = 0.25;
+  this.panA = 0;
+  this.tiltA = 0;
 
-  // Set up the publisher.
-  var cmdVel = new ROSLIB.Topic({
+  var setHeadClient = new ROSLIB.Service({
     ros: ros,
-    name: 'head_controller/follow_joint_trajectory',
-    messageType: 'trajectory_msgs/JointTrajectory'
+    name:'/web_teleop/set_head',
+    serviceType: 'web_teleop/SetHead'
   });
 
-  // Internal function to send a velocity command.
-  var move = function(linear, angular) {
-    var twist = new ROSLIB.Message({
-      linear: {
-        x: linear,
-        y: 0,
-        z: 0
-      },
-      angular: {
-        x: 0,
-        y: 0,
-        z: angular
-      }
-    });  
-    cmdVel.publish(twist);
+  var move = function(pan_, tilt_) {
+    var request = new ROSLIB.ServiceRequest({
+        pan : parseFloat(pan_),
+        tilt : parseFloat(tilt_)
+    });
+    console.log(request);
+    setHeadClient.callService(request);
   }
 
   // Handler for when the mouse is held on the up arrow.
@@ -44,27 +35,35 @@ Head = function(ros) {
   // Note that inside of move, we use that._timer and that.linearSpeed.
   // At the top of the file we set "var that = this" to ensure that the
   // local variable "that" always refers to this Base instance.
-  this.moveUp = function() {
+  this.headUp = function() {
     that._timer = setInterval(function() {
-      move(0, that.pitchSpeed)
+      move(that.panA, that.tiltA)
+      that.tiltA -= 0.1;
+      that.tiltA = Math.max(-Math.PI/4, that.tiltA);
     }, 50);
   }
 
-  this.moveDown = function() {
+  this.headDown = function() {
     that._timer = setInterval(function() {
-      move(0, -that.pitchSpeed)
+      move(that.panA, that.tiltA)
+      that.tiltA += 0.1;
+      that.tiltA = Math.min(Math.PI/2, that.tiltA);
     }, 50);
   }
 
-  this.moveLeft = function() {
+  this.headLeft = function() {
     that._timer = setInterval(function() {
-      move(that.yawSpeed, 0)
+      move(that.panA, that.tiltA)
+      that.panA += 0.05;
+      that.panA = Math.min(Math.PI/2, that.panA);
     }, 50);
   }
 
-  this.moveRight = function() {
+  this.headRight = function() {
     that._timer = setInterval(function() {
-      move(-that.yawSpeed, 0)
+      move(that.panA, that.tiltA)
+      that.panA -= 0.05;
+      that.panA = Math.max(-Math.PI/2, that.panA);
     }, 50);
   }
 
@@ -73,13 +72,12 @@ Head = function(ros) {
     if (that._timer) {
       clearInterval(that._timer);
     }
-    move(0, 0);
   };  
 
-  headUp.addEventListener('mousedown', that.moveUp);
-  headDown.addEventListener('mousedown', that.moveDown);
-  headLeft.addEventListener('mousedown', that.moveLeft);
-  headRight.addEventListener('mousedown', that.moveRight);
+  headUp.addEventListener('mousedown', that.headUp);
+  headDown.addEventListener('mousedown', that.headDown);
+  headLeft.addEventListener('mousedown', that.headLeft);
+  headRight.addEventListener('mousedown', that.headRight);
   
   // We bind stop() to whenever the mouse is lifted up anywhere on the webpage
   // for safety reasons. We want to be conservative about sending movement commands.

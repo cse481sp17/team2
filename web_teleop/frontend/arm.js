@@ -38,25 +38,25 @@ Arm = function(ros) {
 
   // Update desiredHeight when slider moves.
   armSlider1.addEventListener('input', function() {
-    desiredPos1 = armSlider1.value;
+    desiredPos1 = parseFloat(armSlider1.value);
   });
   armSlider2.addEventListener('input', function() {
-    desiredPos2 = armSlider2.value;
+    desiredPos2 = parseFloat(armSlider2.value);
   });
   armSlider3.addEventListener('input', function() {
-    desiredPos3 = armSlider3.value;
+    desiredPos3 = parseFloat(armSlider3.value);
   });
   armSlider4.addEventListener('input', function() {
-    desiredPos4 = armSlider4.value;
+    desiredPos4 = parseFloat(armSlider4.value);
   });
   armSlider5.addEventListener('input', function() {
-    desiredPos5 = armSlider5.value;
+    desiredPos5 = parseFloat(armSlider5.value);
   });
   armSlider6.addEventListener('input', function() {
-    desiredPos6 = armSlider6.value;
+    desiredPos6 = parseFloat(armSlider6.value);
   });
   armSlider7.addEventListener('input', function() {
-    desiredPos7 = armSlider7.value;
+    desiredPos7 = parseFloat(armSlider7.value);
   });
 
   // Method to set the height.
@@ -69,7 +69,11 @@ Arm = function(ros) {
 
   // Set the height when the button is clicked.
   armButton.addEventListener('click', function() {
-    console.log("Button clicked!");
-    that.setArm([desiredPos1, desiredPos2, desiredPos3, desiredPos4, desiredPos5, desiredPos6, desiredPos7]);
+    var pos1 = Math.min(Math.max(-1.60, desiredPos1), 1.60);
+    var pos2 = Math.min(Math.max(-1.22, desiredPos2), 1.22);
+    var pos4 = Math.min(Math.max(-2.25, desiredPos4), 2.25);
+    var pos6 = Math.min(Math.max(-2.18, desiredPos6), 2.18);
+    console.log([pos1, pos2, desiredPos3, pos4, desiredPos5, pos6, desiredPos7]);
+    that.setArm([pos1, pos2, desiredPos3, pos4, desiredPos5, pos6, desiredPos7]);
   });
 }
