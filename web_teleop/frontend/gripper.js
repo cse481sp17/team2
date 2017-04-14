@@ -12,7 +12,34 @@ Gripper = function(ros) {
     name: '/web_teleop/set_gripper',
     serviceType: 'web_teleop/SetGripper'
   });
+
+  /*
+  var gripActionClient = new ROSLIB.ActionClient({
+    ros : ros,
+      serverName: '/gripper_controller/gripper_action',
+      actionName: 'control_msgs/GripperCommandAction'
+  });
+
+  var sendGoal = function(pos, strength) {
+    var goal = new ROSLIB.Goal({
+        actionClient: gripActionClient,
+        goalMessage : {
+          position: pos,        
+          max_effort: strength
+        }
+    });
+    goal.send();
+  };
   
+  gripperOpenButton.addEventListener('click', function() {
+    sendGoal(0.10, desiredStrength); 
+  });
+
+  gripperCloseButton.addEventListener('click', function() {
+     sendGoal(0.10, desiredStrength); 
+  });
+  */
+ 
   // Initialize slider.
   var desiredStrength = 35;
   desiredGripperStrength.textContent = desiredStrength;
@@ -31,15 +58,17 @@ Gripper = function(ros) {
   // Set the Strength when the button is clicked.
   gripperOpenButton.addEventListener('click', function() {
     var request = new ROSLIB.ServiceRequest({
-      strength: desiredStrength
+      position: 0.10,
+      max_effort: parseFloat(desiredStrength)
     });
     setGripperClient.callService(request);
   });
 
-    // Set the Strength when the button is clicked.
+  // Set the Strength when the button is clicked.
   gripperCloseButton.addEventListener('click', function() {
     var request = new ROSLIB.ServiceRequest({
-      strength: desiredStrength
+      position: 0,
+      max_effort: parseFloat(desiredStrength)
     });
     setGripperClient.callService(request);
   });

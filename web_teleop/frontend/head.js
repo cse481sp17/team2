@@ -2,8 +2,8 @@ Head = function(ros) {
   // HTML elements
   // To get an element with an ID of "baseForward", query it as shown below.
   // Note that any IDs you set on HTML elements should be unique.
-  var headForward = document.querySelector('#headForward');
-  var headBackward = document.querySelector('#headBackward');
+  var headUp = document.querySelector('#headUp');
+  var headDown = document.querySelector('#headDown');
   var headLeft = document.querySelector('#headLeft');
   var headRight = document.querySelector('#headRight');
 

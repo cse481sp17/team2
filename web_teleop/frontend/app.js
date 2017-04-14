@@ -31,7 +31,7 @@ App = function() {
       }
       that.base = new Base(that.ros);
       that.torso = new Torso(that.ros);
-      that.head = new Head(that.ros);
+     /* that.head = new Head(that.ros);*/
       that.arm = new Arm(that.ros);
       that.gripper = new Gripper(that.ros);
     });

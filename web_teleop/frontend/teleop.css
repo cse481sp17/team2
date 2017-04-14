@@ -11,6 +11,18 @@
 .base-arrows span {
   display: block;
 }
+.head-arrows {
+  font-size: 2em;
+}
+.head-arrows td {
+  cursor: pointer;
+}
+.head-arrows td:hover {
+  background-color: #ddd;
+}
+.head-arrows span {
+  display: block;
+}
 .arrow-down {
   -ms-transform: rotate(225deg);
   -webkit-transform: rotate(225deg);

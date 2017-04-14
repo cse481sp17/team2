@@ -1,61 +1,75 @@
-Torso = function(ros) {
+Arm = function(ros) {
   // HTML elements
-  var torsoHeight = document.querySelector('#torsoHeight');
-  var desiredTorsoHeight = document.querySelector('#desiredTorsoHeight');
-  var torsoSlider = document.querySelector('#torsoSlider');
-  var torsoButton = document.querySelector('#torsoButton');
+  var armSlider1 = document.querySelector('#armSlider1');
+  var armSlider2 = document.querySelector('#armSlider2');
+  var armSlider3 = document.querySelector('#armSlider3');
+  var armSlider4 = document.querySelector('#armSlider4');
+  var armSlider5 = document.querySelector('#armSlider5');
+  var armSlider6 = document.querySelector('#armSlider6');
+  var armSlider7 = document.querySelector('#armSlider7');
+  var armButton = document.querySelector('#armButton');
 
   var that = this;
 
-  var setTorsoClient = new ROSLIB.Service({
+  var setArmClient = new ROSLIB.Service({
     ros: ros,
-    name: '/web_teleop/set_torso',
-    serviceType: 'web_teleop/SetTorso'
+    name: '/web_teleop/set_arm',
+    serviceType: 'web_teleop/SetArm'
   });
 
-  // Listen to torso height from the joint_state_republisher.
-  var listener = new ROSLIB.Topic({
-    ros: ros,
-    name: 'joint_state_republisher/torso_lift_joint',
-    messageType: 'std_msgs/Float64'
-  });
-
-  listener.subscribe(function(message) {
-    // Whenever we get a message with a new torso height, update
-    // the torso height display on the webpage.
-    var height = message.data;
-
-    // Note the noise in the data. You can smooth it out using this line of code.
-    // height = Math.round(height*1000) / 1000
-    torsoHeight.textContent = height;
-  });
-  
   // Initialize slider.
-  var desiredHeight = 0.1;
-  desiredTorsoHeight.textContent = desiredHeight;
+  var desiredPos1 = 0.0;
+  var desiredPos2 = 0.0;
+  var desiredPos3 = 0.0;
+  var desiredPos4 = 0.0;
+  var desiredPos5 = 0.0;
+  var desiredPos6 = 0.0;
+  var desiredPos7 = 0.0;
+
   // For most input elements, the .value field is both a getter and a setter.
   // Here we can set its value to the default (0.1).
-  torsoSlider.value = desiredHeight;
+  armSlider1.value = desiredPos1;
+  armSlider2.value = desiredPos2;
+  armSlider3.value = desiredPos3;
+  armSlider4.value = desiredPos4;
+  armSlider5.value = desiredPos5;
+  armSlider6.value = desiredPos6;
+  armSlider7.value = desiredPos7;
 
   // Update desiredHeight when slider moves.
-  torsoSlider.addEventListener('input', function() {
-    // Read where the slider is now.
-    desiredHeight = torsoSlider.value;
-    // Update the desired torso height display.
-    desiredTorsoHeight.textContent = desiredHeight;
+  armSlider1.addEventListener('input', function() {
+    desiredPos1 = armSlider1.value;
+  });
+  armSlider2.addEventListener('input', function() {
+    desiredPos2 = armSlider2.value;
+  });
+  armSlider3.addEventListener('input', function() {
+    desiredPos3 = armSlider3.value;
+  });
+  armSlider4.addEventListener('input', function() {
+    desiredPos4 = armSlider4.value;
+  });
+  armSlider5.addEventListener('input', function() {
+    desiredPos5 = armSlider5.value;
+  });
+  armSlider6.addEventListener('input', function() {
+    desiredPos6 = armSlider6.value;
+  });
+  armSlider7.addEventListener('input', function() {
+    desiredPos7 = armSlider7.value;
   });
 
   // Method to set the height.
-  this.setHeight = function(height) {
-    var height = Math.min(Math.max(0.0, height), 0.4);
+  this.setArm = function(arm_joints) {
     var request = new ROSLIB.ServiceRequest({
-      height: height
+      arm_joints: arm_joints
     });
-    setTorsoClient.callService(request);
+    setArmClient.callService(request);
   };
 
   // Set the height when the button is clicked.
-  torsoButton.addEventListener('click', function() {
-    that.setHeight(desiredHeight);
+  armButton.addEventListener('click', function() {
+    console.log("Button clicked!");
+    that.setArm([desiredPos1, desiredPos2, desiredPos3, desiredPos4, desiredPos5, desiredPos6, desiredPos7]);
   });
 }

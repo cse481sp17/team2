@@ -59,6 +59,9 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
    FILES
    SetTorso.srv
+   SetArm.srv
+   SetGripper.srv
+   SetHead.srv
  )
 
 ## Generate actions in the 'action' folder

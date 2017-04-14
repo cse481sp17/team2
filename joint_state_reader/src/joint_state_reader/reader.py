@@ -14,15 +14,11 @@ class JointStateReader(object):
     """                                                                                                
     def __init__(self):                                                                                
 	self.joint_states = {}
-	self.sub = rospy.Subscriber("/joint_states", JointState, self.joint_states_callback)
+	self.sub = rospy.Subscriber("/joint_states", JointState, self.joint_states_callback, queue_size=10)
 
     def joint_states_callback(self, msg):
 	for i, name in enumerate(msg.name):
-	    if name in self.joint_states:
-		self.joint_states[name].append(msg.position[i])
-	    else:
-		self.joint_states[name] = [msg.position[i]]
-
+	    self.joint_states[name] = msg.position[i]
 
     def get_joint(self, name):                                                                         
         """Gets the latest joint value.                                                                
@@ -32,7 +28,9 @@ class JointStateReader(object):
                                                                                                        
         Returns: the joint value, or None if we do not have a value yet.                               
         """                                                                                            
-        return self.joint_states[name][-1]
+	if not name in self.joint_states:
+	    return None
+        return self.joint_states[name]
                                                                                                        
     def get_joints(self, names):                                                                       
         """Gets the latest values for a list of joint names.                    
@@ -44,4 +42,4 @@ class JointStateReader(object):
         Returns: A list of the joint values. Values may be None if we do not    
             have a value for that joint yet.                                    
         """                                                                     
-        return [self.joint_states[x][-1] for x in names]
+        return [None if not x in self.joint_states else self.joint_states[x] for x in names]

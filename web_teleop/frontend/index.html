@@ -8,6 +8,7 @@
     <script src="base.js"></script>
     <script src="torso.js"></script>
     <script src="head.js"></script>
+    <script src="arm.js"></script>
     <script src="gripper.js"></script>
     <script src="app.js"></script>
   </head>
@@ -36,11 +37,11 @@
       <h2>Head control</h2>
       <table class="head-arrows">
         <tr>
-          <td></td><td><span class="arrow-up" id="headForward">&#8598;</span></td><td></td>
+          <td></td><td><span class="arrow-up" id="headUp">&#8598;</span></td><td></td>
         </tr>
         <tr>
           <td><span class="circle-ccw" id="headLeft">&#8634;</span></td>
-          <td><span class="arrow-down" id="headBackward">&#8598;</span></td>
+          <td><span class="arrow-down" id="headDown">&#8598;</span></td>
           <td><span class="circle-cw" id="headRight">&#8635;</span></td>
         </tr>
       </table>
@@ -53,49 +54,37 @@
       <span id="desiredTorsoHeight"></span>
       <input id="torsoButton" type="button" value="Set"></input>
     </div>
-    <div id="torso">
+    <div id="arm">
       <h2>Arm control</h2>
-      Current arm pos1: <span id="armP1"></span><br />
       <label for="armSlider1">Set arm pos1:</label>
       <input id="armSlider1" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP1"></span>
-      <input id="arm1Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP1"></span><br />
 
-      Current arm pos2: <span id="armP2"></span><br />
       <label for="armSlider2">Set arm pos2:</label>
       <input id="armSlider2" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP2"></span>
-      <input id="arm2Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP2"></span><br />
 
-      Current arm pos3: <span id="armP3"></span><br />
       <label for="armSlider3">Set arm pos3:</label>
       <input id="armSlider3" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP3"></span>
-      <input id="arm3Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP3"></span><br />
 
-      Current arm pos4: <span id="armP4"></span><br />
       <label for="armSlider4">Set arm pos4:</label>
       <input id="armSlider4" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP4"></span>
-      <input id="arm4Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP4"></span><br />
 
-      Current arm pos5: <span id="armP5"></span><br />
       <label for="armSlider5">Set arm pos5:</label>
       <input id="armSlider5" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP5"></span>
-      <input id="arm5Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP5"></span><br />
 
-      Current arm pos6: <span id="armP6"></span><br />
       <label for="armSlider6">Set arm pos6:</label>
       <input id="armSlider6" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP6"></span>
-      <input id="arm6Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP6"></span><br />
 
-      Current arm pos7: <span id="armP7"></span><br />
       <label for="armSlider7">Set arm pos7:</label>
       <input id="armSlider7" type="range" min="-3.1" max="3.1" step="0.1"></input>
-      <span id="desiredArmP7"></span>
-      <input id="arm7Buttom" type="button" value="Set"></input><br />
+      <span id="desiredArmP7"></span><br />
+
+      <input id="armButton" type="button" value="Set"></input><br />
     </div>
     <div id="gripper">
       <h2>Gripper control</h2>
@@ -104,9 +93,6 @@
       <span id="desiredGripperStrength"></span>
       <input id="gripperOpenButton" type="button" value="Open"></input>
       <input id="gripperCloseButton" type="button" value="Close"></input>
-    </div>
-    <div id="camera">
-      <img src="//localhost:8000/stream?topic=/head_camera/rgb/image_raw"></img>
     </div>
   </body>
 </html>
