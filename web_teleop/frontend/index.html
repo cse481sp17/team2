@@ -20,6 +20,9 @@
       <input id="websocketUrl" type="text"></input>
       <input id="websocketButton" type="button" value="Reconnect"></input>
     </div>
+    <div id="camera" style="float:right;">
+        <img src="//localhost:8000/stream?topic=/head_camera/rgb/image_raw" width="1000"></img>
+    </div>
     <div id="base">
       <h2>Base control</h2>
       <table class="base-arrows">
@@ -57,31 +60,31 @@
     <div id="arm">
       <h2>Arm control</h2>
       <label for="armSlider1">Set arm pos1:</label>
-      <input id="armSlider1" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider1" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP1"></span><br />
 
       <label for="armSlider2">Set arm pos2:</label>
-      <input id="armSlider2" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider2" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP2"></span><br />
 
       <label for="armSlider3">Set arm pos3:</label>
-      <input id="armSlider3" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider3" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP3"></span><br />
 
       <label for="armSlider4">Set arm pos4:</label>
-      <input id="armSlider4" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider4" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP4"></span><br />
 
       <label for="armSlider5">Set arm pos5:</label>
-      <input id="armSlider5" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider5" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP5"></span><br />
 
       <label for="armSlider6">Set arm pos6:</label>
-      <input id="armSlider6" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider6" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP6"></span><br />
 
       <label for="armSlider7">Set arm pos7:</label>
-      <input id="armSlider7" type="range" min="-3.1" max="3.1" step="0.1"></input>
+      <input id="armSlider7" type="range" style="width:300px;" min="-3.1" max="3.1" step="0.02"></input>
       <span id="desiredArmP7"></span><br />
 
       <input id="armButton" type="button" value="Set"></input><br />
