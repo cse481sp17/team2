@@ -2,6 +2,10 @@
 import rospy
 from map_annotator.msg import UserAction, PoseNames
 
+
+POSE_NAMES = 'pose_names'
+USER_ACTIONS = 'user_actions'
+
 def help():
     print "Commands"
     print "  list: List saved poses."
@@ -14,7 +18,6 @@ def help():
 
 
 class CLIInterface(object):
-
     def __init__(self):
         self.publisher =  rospy.Publisher('user_actions',UserAction, queue_size = 10) 
 
@@ -22,29 +25,37 @@ class CLIInterface(object):
     
     # Publish msg 
     def save(self, poseName):
-        print poseName
         msg = UserAction()
         msg.command = UserAction.SAVE
         msg.name = poseName
         self.publisher.publish(msg) 
+        self.poses.append(poseName)
     
     def deletePose(self, poseName):
-        print poseName
-        msg = UserAction()
-        msg.command = UserAction.DELETE
-        msg.name = poseName
-        self.publisher.publish(msg) 
- 
+        if poseName not in self.poses:
+            print "No such pose \'" + poseName +"\'"
+        else:
+            msg = UserAction()
+            msg.command = UserAction.DELETE
+            msg.name = poseName
+            self.publisher.publish(msg) 
+    
     def goto(self, poseName):
-        print poseName
-        msg = UserAction()
-        msg.command = UserAction.GOTO
-        msg.name = poseName
-        self.publisher.publish(msg) 
- 
+        if poseName not in self.poses:
+            print "No such pose \'" + poseName +"\'"
+        else:
+            msg = UserAction()
+            msg = UserAction()
+            msg.command = UserAction.GOTO
+            msg.name = poseName
+            self.publisher.publish(msg) 
+    
     
     def listPoses(self):
-        print self.poses
+        print "Poses:"
+        for pose in self.poses:
+            print " " + pose
+        print ""
     
     def callback(self,new_data):
         self.poses = new_data.poses
