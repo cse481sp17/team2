@@ -5,7 +5,7 @@ import pickle
 import rospy
 from std_msgs.msg import Header
 from map_annotator.msg import UserAction, PoseNames
-from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import Quaternion, Pose, PoseStamped, PoseWithCovarianceStamped
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
 
@@ -53,7 +53,6 @@ def action_callback(msg):
         goal.pose = poses[msg.name]
         move_base_pub.publish(goal)
     elif msg.command == 'create':
-        print (msg)
         pose = Pose()
         poses[msg.name] = pose
         create_marker(msg.name, pose)

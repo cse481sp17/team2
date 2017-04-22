@@ -1,13 +1,9 @@
-var gPoseList = null;
-
 PoseList = function(ros) {
   // HTML elements
   var poseListDiv = document.querySelector('#poseList');
   var createButton = document.querySelector('#createButton');
 
   var that = this;
-
-  gPoseList = this;
 
   var sub = new ROSLIB.Topic({
     ros: ros,
@@ -45,10 +41,10 @@ PoseList = function(ros) {
       return;
     }
     console.log('Creating pose with name', name);
-    handleAction("create", name);
+    that.handleAction("create", name);
   });
 
-  var handleAction = function(command, name) {
+  this.handleAction = function(command, name) {
     var message = new ROSLIB.Message({
       command: command,
       name: name

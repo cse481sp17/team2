@@ -5,12 +5,12 @@ Pose = function(ros, name, parent) {
 
   function handleGoTo() {
     console.log('Go to ' + name + ' clicked.');
-    gPoseList.handleAction("goto", name);
+    parent.handleAction("goto", name);
   }
 
   function handleDelete() {
     console.log('Delete ' + name + ' clicked.');
-    gPoseList.handleAction("delete", name);
+    parent.handleAction("delete", name);
   }
 
   this.render = function() {
