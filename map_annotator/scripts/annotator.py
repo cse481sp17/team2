@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import rospy
+import math
 import pickle
+import rospy
 from std_msgs.msg import Header
 from map_annotator.msg import UserAction, PoseNames
-from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
 
@@ -34,11 +35,15 @@ def load_poses(load_path=DEFAULT_PATH):
 
 def action_callback(msg):
     global poses
+    global marker_server
+
     if msg.command == 'save':
         poses[msg.name] = current_pose
         create_marker(msg.name, poses[msg.name])
     elif msg.command == 'delete':
         del poses[msg.name]
+        marker_server.erase(msg.name)
+        marker_server.applyChanges()
     elif msg.command == 'goto':
         header = Header()
         header.stamp = rospy.Time.now()
@@ -48,18 +53,27 @@ def action_callback(msg):
         goal.pose = poses[msg.name]
         move_base_pub.publish(goal)
     elif msg.command == 'create':
+        print (msg)
         pose = Pose()
+        poses[msg.name] = pose
         create_marker(msg.name, pose)
-    pose_names = PoseNames()
-    pose_names.poses = poses.keys()
-    pose_names_pub.publish(pose_names)
+
+    publish_pose_names(poses)
 
 def pose_callback(msg):
     global current_pose
     current_pose = msg.pose.pose
 
+def publish_pose_names(poses):
+    pose_names = PoseNames()
+    pose_names.poses = poses.keys()
+    pose_names_pub.publish(pose_names)
+
 def handle_viz_input(msg):
-    print ("Rviz input!")
+    if (msg.event_type == InteractiveMarkerFeedback.POSE_UPDATE):
+        marker_server.setPose(msg.marker_name, msg.pose);
+        marker_server.applyChanges();
+        poses[msg.marker_name] = msg.pose
 
 def create_marker(name, pose):
     global marker_server
@@ -68,28 +82,36 @@ def create_marker(name, pose):
     int_marker.header.frame_id = 'map'
     int_marker.header.stamp = rospy.Time.now()
     int_marker.name = name
+    int_marker_pose = pose
+    int_marker_pose.position.z = 0.1
+    int_marker.pose= int_marker_pose
     # Create controls for the interactive marker
     ### Box control
-    box_marker = Marker()
-    box_marker.type = Marker.CUBE
-    box_marker.scale.x = 0.4
-    box_marker.scale.y = 0.4
-    box_marker.scale.z = 0.4
-    box_marker.color.r = 0.5
-    box_marker.color.g = 0.5
-    box_marker.color.b = 0.5
-    box_marker.color.a = 1.0
-    box_marker.pose = pose
-    box_control = InteractiveMarkerControl()
-    box_control.always_visible = True
-    box_control.markers.append(box_marker)
+    arrow_marker = Marker()
+    arrow_marker.type = Marker.ARROW
+    arrow_marker.scale.x = 0.7
+    arrow_marker.scale.y = 0.2
+    arrow_marker.scale.z = 0.2
+    arrow_marker.color.r = 0.5
+    arrow_marker.color.g = 0.5
+    arrow_marker.color.b = 0.5
+    arrow_marker.color.a = 1.0
+    arrow_control = InteractiveMarkerControl()
+    arrow_control.always_visible = True
+    arrow_control.markers.append(arrow_marker)
     ### Rotate control
     rotate_control = InteractiveMarkerControl()
-    rotate_control.name = "move_x"
-    rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    rotate_control.name = "move_rotate"
+    rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_ROTATE
+    orien = Quaternion()
+    orien.x = 0
+    orien.y = 1
+    orien.z = 0
+    orien.w = 1
+    rotate_control.orientation = orien
     # Add the control to the interactive marker
-    int_marker.controls.append(box_control)
-    int_marker.controls.append(box_control)
+    int_marker.controls.append(arrow_control)
+    int_marker.controls.append(rotate_control)
     marker_server.insert(int_marker, handle_viz_input)
     marker_server.applyChanges()
 
@@ -102,11 +124,15 @@ if __name__ == "__main__":
     rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, pose_callback)
 
     marker_server = InteractiveMarkerServer("marker_server")
+    # Load marker poses from picke file
     load_poses()
+    # Create interactive markers for the loaded poses
+    for pose_name in poses:
+        create_marker(pose_name, poses[pose_name])
 
+    publish_pose_names(poses)
+
+    # Wait for user input
     r = rospy.Rate(10)
     while not rospy.is_shutdown():
         r.sleep()
-        
-
- 
