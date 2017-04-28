@@ -67,7 +67,7 @@ def main():
     x = table_x - (table_size_x / 2) + (size_x / 2)
     y = 0 
     z = table_z + (table_size_z / 2) + (size_z / 2)
-    #planning_scene.addBox('divider', size_x, size_y, size_z, x, y, z)
+    planning_scene.addBox('divider', size_x, size_y, size_z, x, y, z)
 
     planning_scene.removeAttachedObject('tray')
 
@@ -77,10 +77,11 @@ def main():
     rospy.on_shutdown(shutdown)
 
     kwargs = {
-        'allowed_planning_time': 30,
-        'execution_timeout': 20,
-        'num_planning_attempts': 5,
+        'allowed_planning_time': 20,
+        'execution_timeout': 40,
+        'num_planning_attempts': 50,
         'replan': False,
+        
     }
     error = arm.move_to_pose(pose1, **kwargs)
     if error is not None:
@@ -96,7 +97,7 @@ def main():
         planning_scene.setColor('tray', 1, 0, 1)
         planning_scene.sendColors()
     rospy.sleep(1)
-    kwargs['orientation_constraint'] = oc
+    #kwargs['orientation_constraint'] = oc
     error = arm.move_to_pose(pose2, **kwargs)
     if error is not None:
         rospy.logerr('Pose 2 failed: {}'.format(error))
