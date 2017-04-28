@@ -1,0 +1,7 @@
+<launch>
+    <include file="$(find fetch_api)/launch/move_group.launch" />
+    <include file="$(find fetch_gazebo)/launch/playground.launch" />
+    <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find applications)/config/ik.rviz" />
+    <node pkg="applications" type="keyboard_teleop.py" name="fetch_keyboard_teleop" output="screen" />
+    <node pkg="applications" type="gripper_im_server.py" name="fetch_ik" output="screen" />
+</launch>
