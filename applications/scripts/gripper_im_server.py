@@ -207,7 +207,7 @@ class GripperTeleop(object):
 class AutoPickTeleop(object):
     def __init__(self, arm, gripper, im_server):
         self._im_server = im_server
-        # obj_im = InteractiveMarker() ...
+        obj_im = InteractiveMarker() 
         self._im_server.insert(obj_im, feedback_cb = self.handle_feedback)
 
     def start(self):
