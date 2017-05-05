@@ -1,9 +1,10 @@
 <launch>
+    <arg name="pc_bag" default="tags_1.bag" />
     <include file="$(find fetch_api)/launch/move_group.launch" />
     <include file="$(find fetch_api)/launch/ar_desktop.launch">
         <arg name="cam_image_topic" value="mock_point_cloud" />
     </include> 
     <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find applications)/config/ar.rviz" />
     <node pkg="applications" type="keyboard_teleop.py" name="fetch_keyboard_teleop" output="screen" />
-    <node pkg="applications" type="publish_saved_cloud.py" name="fetch_publish_saved_cloud" output="screen" args="$(find perception)/data/tags.bag"/>
+    <node pkg="applications" type="publish_saved_cloud.py" name="fetch_publish_saved_cloud" output="screen" args="$(find perception)/data/$(arg pc_bag)" />
 </launch>
