@@ -89,7 +89,7 @@ class ActionSaver(object):
             indexIn = int(cin)
             arPose = self.markers[indexIn].pose.pose
             # Create Action
-            action = ActionType(ActionSaver.MOVE, marker.id, arPose, wristPose)
+            action = ActionType(ActionSaver.MOVE, self.markers[indexIn].id, arPose, wristPose)
             self.actions.append(action)
         elif actionType == "open":
             action = ActionType(ActionSaver.OPEN)
@@ -142,8 +142,6 @@ class ActionSaver(object):
     def arCallback(self, msg):
         markers = msg.markers
         markers.sort(key=lambda x: x.pose.pose.position.x)
-        if len(markers) < len(self.markers):
-            return
         self.markers = markers
 
 
