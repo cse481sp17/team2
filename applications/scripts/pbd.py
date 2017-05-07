@@ -76,6 +76,9 @@ class ActionSaver(object):
             wristPose.orientation.y = rot[1]
             wristPose.orientation.z = rot[2]
             wristPose.orientation.w = rot[3]
+            if len(self.markers) == 0:
+                print("There's no marker")
+                return
             # Save ar_marker's pose in base_link frame
             print("Relative to which marker do you want to save this pose?")
             for i, marker in enumerate(self.markers):
@@ -129,6 +132,8 @@ class ActionSaver(object):
                 pose_stamped.header.frame_id = "base_link"
                 pose_stamped.pose = fetch_api.matrix2pose(wrist)
                 arm.move_to_pose(pose_stamped, **kwargs)
+                # Wait?
+
             elif action.action == ActionSaver.OPEN:
                 gripper.open()
             elif action.action == ActionSaver.CLOSE:
@@ -137,6 +142,8 @@ class ActionSaver(object):
     def arCallback(self, msg):
         markers = msg.markers
         markers.sort(key=lambda x: x.pose.pose.position.x)
+        if len(markers) < len(self.markers):
+            return
         self.markers = markers
 
 
@@ -149,6 +156,7 @@ if __name__ == "__main__":
     print "Welcome to the action saver!"
     help()
     
+    r = rospy.Rate(10)
     while(True):
         cin = raw_input("> ")
         if cin =="quit":
@@ -169,3 +177,4 @@ if __name__ == "__main__":
             action_saver.execute()
         else:
             print "Unknown cmd type again"
+        r.sleep()
