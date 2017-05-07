@@ -123,7 +123,7 @@ class ActionSaver(object):
                 wrist = np.dot(fetch_api.pose2matrix(filter(lambda x: x.id == action.arId, self.markers)[0].pose.pose), ar2wrist)
                 # Navigate the arm there
                 kwargs = {
-                    'allowed_planning_time': 20,
+                    'allowed_planning_time': 50,
                     'execution_timeout': 40,
                     'num_planning_attempts': 30,
                     'replan': False,
@@ -142,6 +142,8 @@ class ActionSaver(object):
     def arCallback(self, msg):
         markers = msg.markers
         markers.sort(key=lambda x: x.pose.pose.position.x)
+        if len(self.markers) > len(markers):
+            return
         self.markers = markers
 
 
