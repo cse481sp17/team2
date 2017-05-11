@@ -29,7 +29,7 @@ def main():
         return
 
     pub = rospy.Publisher('mock_point_cloud', PointCloud2, latch=True, queue_size=1)       
-    rate = rospy.Rate(2)
+    rate = rospy.Rate(1)
     while not rospy.is_shutdown():
         cloud.header.stamp = rospy.Time.now()
         pub.publish(cloud)
