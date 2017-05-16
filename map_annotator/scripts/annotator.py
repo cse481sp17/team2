@@ -3,6 +3,7 @@
 import math
 import pickle
 import rospy
+from shuguru.srv import PutCommand, GetCommand
 from std_msgs.msg import Header
 from map_annotator.msg import UserAction, PoseNames
 from geometry_msgs.msg import Quaternion, Pose, PoseStamped, PoseWithCovarianceStamped
