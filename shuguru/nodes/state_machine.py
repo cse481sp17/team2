@@ -6,12 +6,17 @@ from shuguru.srv import GetCommand, PutCommand
 from smach import State, StateMachine
 from smach_ros import SimpleActionState, IntrospectionServer
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-
+from sensor_msgs.msg import PointCloud2
+from ar_track_alvar_msgs.msg import AlvarMarkers
 
 MOVE_BASE = '/move_base'
 GET_COMMAND = '/next_command'
-POSES = '/home/team2/catkin_ws/src/cse481c/shuguru/data/poses.p'
+POSES = '/home/team2/catkin_ws/src/cse481c/shuguru/data/dests.dat'
+GET_CLOUD_TOPIC = 'head_camera/depth_registered/points'
+PUBLISH_CLOUD_TOPIC = 'current_point_cloud'
+AR_MARKER_TOPIC = 'ar_pose_marker'
 
+markers = []
 
 class GetCommandState(State):
     def __init__(self):
@@ -40,16 +45,43 @@ class GetCommandState(State):
 
 
 class GrabBoxState(State):
-    def __init__(self):
+    def __init__(self, point_cloud_publisher):
         State.__init__(self,
                        outcomes=['succeeded', 'preempted', 'aborted'],
                        input_keys=['shoe_id'],
                        output_keys=[])
+        self.point_cloud_publisher = point_cloud_publisher
 
     def execute(self, userdata):
         '''TODO
-            Do something to grab shoe box
+            1. Save latest point cloud
+            2. Detect fiducials in it
+            3. Grab box
         '''
+
+        # TODO: idk how to avoid these globals, but maybe we
+        # can get rid of them somehow?
+        global markers
+        point_cloud = rospy.wait_for_message(GET_CLOUD_TOPIC, PointCloud2)
+
+        point_cloud_publisher.publish(point_cloud)
+
+        # wait for markers to be published
+        while not markers
+            rospy.sleep(0.5)
+
+        '''TODO
+            Arm stuff
+        '''
+
+        '''
+            Delete markers after finishing movement,
+            so next go around we make sure to get a
+            new set
+        '''
+
+        markers = []
+
         rospy.loginfo('Executing state GRAB_BOX')
         return 'succeeded'
 
@@ -74,22 +106,26 @@ def goal_callback(userdata, goal):
     goal = MoveBaseGoal()
     goal.target_pose.header.stamp = rospy.Time()
     goal.target_pose.header.frame_id = "map"
-    print(userdata.goal_poses)
-    print(userdata.goal_id)
     goal.target_pose.pose = userdata.goal_poses[str(userdata.goal_id)]
     return goal
 
 
 def load_poses(load_path):
-
-    print(load_path)
     poses = pickle.load(open(load_path, 'rb'))
+    print(poses)
     return poses
 
+def marker_callback(self, msg):
+    global markers
+    markers = msg.markers
 
 def main():
     rospy.init_node('state_machine')
     sm = StateMachine(['succeeded', 'preempted', 'aborted'])
+
+    point_cloud_publisher = rospy.Publisher(PUBLISH_CLOUD_TOPIC, PointCloud2, queue_size=10)
+
+    markers_subscriber = rospy.Subscriber(AR_MARKER_TOPIC, AlvarMarkers, marker_callback)
 
     # load pre-defined goal poses from pickle file
     sm.userdata.goal_poses = load_poses(POSES)
@@ -101,6 +137,7 @@ def main():
     sm.userdata.shoe_id = 0
 
     # Register states to the state machine
+    # TODO: Are state objects created and destroyed multiple times?
     with sm:
         StateMachine.add('GO_SHELF',
                          SimpleActionState(
@@ -122,7 +159,7 @@ def main():
                          remapping={})
 
         StateMachine.add('GRAB_BOX',
-                         GrabBoxState(),
+                         GrabBoxState(point_cloud_publisher),
                          transitions={'succeeded': 'GO_SEAT',
                                       'preempted': 'preempted',
                                       'aborted': 'aborted'},

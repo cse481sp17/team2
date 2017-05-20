@@ -9,7 +9,6 @@ command_queue = None
 
 def handle_put_command(req):
     global command_queue
-    
     command_queue.put(req)
     return 1
 
@@ -17,7 +16,6 @@ def handle_put_command(req):
 def handle_get_command(req):
     global command_queue
     get = command_queue.get()
-    print(get)
     return (get.shoe_id, get.goal_id)
 
 

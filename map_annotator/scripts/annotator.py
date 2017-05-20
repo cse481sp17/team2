@@ -10,7 +10,6 @@ from geometry_msgs.msg import Quaternion, Pose, PoseStamped, PoseWithCovarianceS
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
 
-DEFAULT_PATH = "./poses.p"
 POSE_NAMES = "/pose_names"
 USER_ACTIONS = "/user_actions"
 AMCL_POSE = "/amcl_pose"
@@ -24,10 +23,12 @@ marker_server = None  # Interactive marker server
 current_pose = None   # AMCL updates current_pose
 
 
-def save_poses(save_path=DEFAULT_PATH):
+def save_poses(save_path):
+    print(save_path)
     pickle.dump(poses, open(save_path, 'wb'))
 
-def load_poses(load_path=DEFAULT_PATH):
+def load_poses(load_path):
+    print(load_path)
     global poses
     try:
         poses = pickle.load(open(load_path, 'rb'))
@@ -118,14 +119,21 @@ def create_marker(name, pose):
 
 if __name__ == "__main__":
 
+    if len(sys.argv) < 2:
+        print("Usage: rosrun map_annotator annotator.py [file_path]")
+        sys.exit(0)
+
+    print("Loading/Saving data at " + sys.argv[1])
+
     rospy.init_node('annotator')
-    rospy.on_shutdown(save_poses)
+
+    rospy.on_shutdown(lambda: save_poses(sys.argv[1]))
     rospy.Subscriber(USER_ACTIONS, UserAction, action_callback)
     rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, pose_callback)
 
     marker_server = InteractiveMarkerServer("marker_server")
     # Load marker poses from picke file
-    load_poses()
+    load_poses(sys.argv[1])
     # Create interactive markers for the loaded poses
     for pose_name in poses:
         create_marker(pose_name, poses[pose_name])

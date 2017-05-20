@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Shu Guru</title>
+    <script src="eventemitter2.js"></script>
+    <script src="roslib.js"></script>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-select.css" rel="stylesheet">
+
+    <style>
+      .selectpicker {
+
+      }
+    </style>
+
+    <script>
+
+   var shoes = {
+      "Sports Shoe":{
+        "preview":"http://www.runnersworld.com/sites/runnersworld.com/files/styles/slideshow-desktop/public/nike-zoom-span_m_400.jpg",
+        "sizes":{
+          "Small":{
+            "id":10
+          },
+          "Medium":{
+            "id":11
+          }
+        }
+      },
+
+      "Fancy Shoe":{
+        "preview":"https://www.topoutshoes.com/media/catalog/product/cache/1/image/1200x1200/9df78eab33525d08d6e5fb8d27136e95/_/1/_11_1_7.jpg",
+        "sizes":{
+          "Small":{
+            "id":21
+          },
+          "Medium":{
+            "id":22
+          }
+        }
+      }
+
+    };
+
+    function SetupForm() {
+      var shoeid = document.getElementById("shoeid");
+      shoeid.innerHTML = "<option selected></option>";
+
+      for (var name in shoes) {
+        var option = document.createElement("option");
+        option.text = name;
+        shoeid.add(option);
+      }
+
+      $('#shoeid').selectpicker('refresh');
+
+      document.getElementById("step2").style.display = "none";
+    }
+
+    function SelectShoe() {
+      var shoeid = document.getElementById("shoeid");
+      var name = shoeid.options[shoeid.selectedIndex].text;
+
+      if (name=="") {
+        SetupForm();
+      } else {
+        document.getElementById("step2").style.display = "block";
+        document.getElementById("shoethumb").src = shoes[name].preview;
+
+        var shoesize = document.getElementById("shoesize");
+        shoesize.innerHTML = "<option selected></option>";
+
+        for (var name in shoes[name].sizes) {
+          var option = document.createElement("option");
+          option.text = name;
+          shoesize.add(option);
+        }
+
+        $('#shoesize').selectpicker('refresh');
+
+        document.getElementById("step3").style.display = "none";
+      }
+    }
+
+    function SelectShoeSize() {
+      var shoesize = document.getElementById("shoesize");
+      var size = shoesize.options[shoesize.selectedIndex].text;
+
+      if (size=="") {
+        SelectShoe();
+      } else {
+        document.getElementById("step3").style.display = "block";
+      }
+    }
+
+    function OrderShoe() {
+      var shoeid = document.getElementById("shoeid");
+      var name = shoeid.options[shoeid.selectedIndex].text;
+
+      var shoesize = document.getElementById("shoesize");
+      var size = shoesize.options[shoesize.selectedIndex].text;
+
+      var location = document.getElementById("location");
+      var seatname = location.options[location.selectedIndex].text;
+      var seat = location.options[location.selectedIndex].value;
+
+      if (typeof SendOrderShoe == "function") {
+        SendOrderShoe(shoes[name].sizes[size].id, seat);
+        AlertUser("Ordered shoe id "+shoes[name].sizes[size].id+" to "+seatname, "alert-success");
+      } else {
+        AlertUser("Interface not ready", "alert-danger");
+      }
+
+      
+    }
+
+    function AlertUser(text, clas) {
+      document.getElementById("alertplace").innerHTML = "<div class=\"alert "+clas+"\" role=\"alert\">"+text+"</div>";
+    }
+
+    </script>
+  </head>
+  <body onload="init();">
+
+  <div class="container">
+    <h1 class="text-center"><img src="shu guru.png" height="100"></h1>
+  <div class="row">
+  <div class="col-sm-1"></div>
+  <div class="col-sm-10">
+    
+
+
+    <p id="alertplace">
+
+    </p>
+
+    <div class="row">
+      <div class="col-sm-5">
+
+        <p>
+          <div class="input-group">
+            <input id="websocketUrl" class="form-control" type="text" placeholder="Websocket URL"></input>
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" id="websocketButton">Connect Websocket</button>
+            </span>
+          </div>
+        </p>
+
+        <p>
+          <select name="shoeid" id="shoeid" class="selectpicker" onchange="SelectShoe()" data-width="100%"></select>
+        </p>
+        <div id="step2" style="display:none;">
+          <p>
+            <select name="shoesize" id="shoesize" class="selectpicker" onchange="SelectShoeSize()" data-width="100%"></select>
+          </p>
+
+          <div id="step3" style="display:none;">
+            <p>
+              <select name="location" id="location" class="selectpicker" data-width="100%">
+                <option value="1">Seat 1</option>
+                <option value="2">Seat 2</option>
+              </select>
+            </p>
+            <p class="text-center">
+              <button onclick="OrderShoe()" type="button" class="btn btn-primary">Order</button>
+            </p>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-sm-7">
+        <p>
+          <div class="thumbnail">
+            <img id="shoethumb" src="" alt="Shoe" style="width:100%;">
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-1"></div>
+  </div>
+
+  </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-select.js"></script>
+  </body>
+</html>
+
+
+<script>
+// init is called in index.html at <body onload="init()">
+function init() {
+  SetupForm();
+  var app = new App();
+}
+
+
+ App = function() {
+  // HTML elements
+  var websocketUrl = document.querySelector('#websocketUrl');
+  var websocketButton = document.querySelector('#websocketButton');
+
+  // Compute websocket URL.
+  var url = (function() {
+    var hostname = window.location.hostname || "localhost";
+    var protocol = 'ws:';
+    if (window.location.protocol == 'https:') {
+      protocol = 'wss:'
+    }
+    return protocol + '//' + hostname + ':9090';
+  })();
+  websocketUrl.value = url;
+
+  // This is a common technique in JavaScript callbacks.
+  // If you are not sure what 'this' refers to (and the rules are often unclear,
+  // just assign a local variable (named 'that') to 'this' outside the callback
+  // and use that variable instead.
+  var that = this;
+
+  // Connects to the websocket URL and sets this.ros.
+  this.connect = function(url) {
+    this.ros = new ROSLIB.Ros({url: url});
+    this.ros.on('connection', function() {
+      AlertUser('Connected to websocket', "alert-success");
+      that.shoecommand = new ShoeCommand(that.ros);
+    });
+    this.ros.on('error', function(error) {
+      AlertUser('Error connecting to websocket', "alert-danger");
+    });
+    this.ros.on('close', function() {
+      AlertUser('Disconnected from websocket', "alert-danger");
+    });
+  }
+
+  // Set up the "Reconnect" button.
+  var connectFromButton = function() { that.connect(websocketUrl.value); };
+  websocketButton.addEventListener('click', connectFromButton);
+
+  // Initialize app.
+  this.connect(url);
+};
+
+ShoeCommand = function(ros) {
+  // HTML elements
+  var torsoHeight = document.querySelector('#torsoHeight');
+  var desiredTorsoHeight = document.querySelector('#desiredTorsoHeight');
+  var torsoSlider = document.querySelector('#torsoSlider');
+  var torsoButton = document.querySelector('#torsoButton');
+
+  var that = this;
+
+  var setOrderShoeClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/put_command',
+    serviceType: 'shuguru/PutCommand'
+  });
+
+/*
+  // Listen to torso height from the joint_state_republisher.
+  var listener = new ROSLIB.Topic({
+    ros: ros,
+    name: 'joint_state_republisher/torso_lift_joint',
+    messageType: 'std_msgs/Float64'
+  });
+
+  listener.subscribe(function(message) {
+    var height = message.data;
+    torsoHeight.textContent = height;
+  });
+*/
+
+  //global
+  SendOrderShoe = function(id, seat) {
+    console.log(id);
+    var request = new ROSLIB.ServiceRequest({
+      shoe_id: parseInt(id + "", 10),
+      goal_id: parseInt(seat + "", 10)
+    });
+    setOrderShoeClient.callService(request);
+  }
+}
+
+
+
+</script>
