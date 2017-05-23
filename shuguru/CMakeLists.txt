@@ -59,6 +59,8 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    GetCommand.srv
    PutCommand.srv
+   GrabBox.srv
+   PutBox.srv
 )
 
 ## Generate actions in the 'action' folder
