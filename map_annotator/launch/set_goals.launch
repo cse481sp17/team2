@@ -1,0 +1,5 @@
+<launch>
+    <arg name="file_path" default="$(find map_annotator)/data/poses.dat" />
+    <node pkg="map_annotator" type="annotator.py" name="annotator" output="screen" args="$(arg file_path)" />
+    <node pkg="map_annotator" type="cli.py" name="cli" output="screen" />
+</launch>

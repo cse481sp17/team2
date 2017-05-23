@@ -4,5 +4,4 @@
         <arg name="map_file" value="$(arg map_file)" />
     </include>
     <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find applications)/config/navigation.rviz" />
-    <include file="$(find fetch_gazebo)/launch/playground.launch"></include>
 </launch>
