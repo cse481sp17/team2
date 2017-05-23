@@ -2,19 +2,15 @@
 
 import rospy
 import pickle
-from shuguru.srv import GetCommand, PutCommand
 from smach import State, StateMachine
 from smach_ros import SimpleActionState, IntrospectionServer
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import PointCloud2
 from ar_track_alvar_msgs.msg import AlvarMarkers
+from shuguru.srv import GetCommand, PutCommand, GrabBox, PutBox
 
 MOVE_BASE = '/move_base'
-GET_COMMAND = '/next_command'
 POSES = '/home/team2/catkin_ws/src/cse481c/shuguru/data/dests.dat'
-GET_CLOUD_TOPIC = 'head_camera/depth_registered/points'
-PUBLISH_CLOUD_TOPIC = 'current_point_cloud'
-AR_MARKER_TOPIC = 'ar_pose_marker'
 
 markers = []
 
@@ -33,10 +29,6 @@ class GetCommandState(State):
         
         command = None
         while not command:
-            '''TODO
-                request command via service
-                command = brabra
-            '''
             command = get_command()
             rospy.sleep(1.0)
         userdata.goal_id = str(command.goal_id)
@@ -45,44 +37,22 @@ class GetCommandState(State):
 
 
 class GrabBoxState(State):
-    def __init__(self, point_cloud_publisher):
+    def __init__(self):
         State.__init__(self,
                        outcomes=['succeeded', 'preempted', 'aborted'],
                        input_keys=['shoe_id'],
                        output_keys=[])
-        self.point_cloud_publisher = point_cloud_publisher
 
     def execute(self, userdata):
-        '''TODO
-            1. Save latest point cloud
-            2. Detect fiducials in it
-            3. Grab box
-        '''
-
-        # TODO: idk how to avoid these globals, but maybe we
-        # can get rid of them somehow?
-        global markers
-        point_cloud = rospy.wait_for_message(GET_CLOUD_TOPIC, PointCloud2)
-
-        point_cloud_publisher.publish(point_cloud)
-
-        # wait for markers to be published
-        while not markers
-            rospy.sleep(0.5)
-
-        '''TODO
-            Arm stuff
-        '''
-
-        '''
-            Delete markers after finishing movement,
-            so next go around we make sure to get a
-            new set
-        '''
-
-        markers = []
-
         rospy.loginfo('Executing state GRAB_BOX')
+        return 'succeeded'
+
+        rospy.wait_for_service('grab_box')
+        grab_box = rospy.ServiceProxy('grab_box', GrabBox)
+
+        result = grab_box(int(userdata.shoe_id))
+        if result == 0:
+            return 'succeeded'
         return 'succeeded'
 
 
@@ -95,10 +65,15 @@ class PutBoxState(State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PUT_BOX')
-        '''TODO
-            Do something to put shoe box
-        '''
+
+        rospy.wait_for_service('put_box')
+        put_box = rospy.ServiceProxy('put_box', PutBox)
+
         userdata.goal_id = 0  # Reset the goal to the shelf
+        result = put_box()
+
+        if result == 0:
+            return 'succeeded'
         return 'succeeded'
 
 
@@ -123,10 +98,6 @@ def main():
     rospy.init_node('state_machine')
     sm = StateMachine(['succeeded', 'preempted', 'aborted'])
 
-    point_cloud_publisher = rospy.Publisher(PUBLISH_CLOUD_TOPIC, PointCloud2, queue_size=10)
-
-    markers_subscriber = rospy.Subscriber(AR_MARKER_TOPIC, AlvarMarkers, marker_callback)
-
     # load pre-defined goal poses from pickle file
     sm.userdata.goal_poses = load_poses(POSES)
     print(sm.userdata.goal_poses)
@@ -137,7 +108,6 @@ def main():
     sm.userdata.shoe_id = 0
 
     # Register states to the state machine
-    # TODO: Are state objects created and destroyed multiple times?
     with sm:
         StateMachine.add('GO_SHELF',
                          SimpleActionState(
@@ -159,7 +129,7 @@ def main():
                          remapping={})
 
         StateMachine.add('GRAB_BOX',
-                         GrabBoxState(point_cloud_publisher),
+                         GrabBoxState(),
                          transitions={'succeeded': 'GO_SEAT',
                                       'preempted': 'preempted',
                                       'aborted': 'aborted'},

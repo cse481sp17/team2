@@ -1,7 +1,10 @@
 <launch>
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
     <include file="$(find applications)/launch/navigation.launch" />
-    <include file="$(find fetch_api)/launch/ar_desktop.launch" />
+    <include file="$(find fetch_api)/launch/ar_desktop.launch">
+        <arg name="cam_image_topic" value="/current_point_cloud" />
+    </include>
+    <include file="$(find fetch_api)/launch/move_group.launch" />
 
     <node pkg="shuguru" type="command_server.py" name="command_server" output="screen"/>
     <node pkg="shuguru" type="manipulation_server.py" name="manipulation_server" output="screen"/>
