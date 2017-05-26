@@ -204,7 +204,7 @@ Visualization Manager:
       Max Color: 255; 255; 255
       Max Intensity: 999999
       Min Color: 0; 0; 0
-      Min Intensity: 1.7115e-10
+      Min Intensity: 0
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -338,7 +338,7 @@ Visualization Manager:
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /ARmarker_points
-      Name: Marker
+      Name: ARMarkers
       Namespaces:
         3dpts: true
         arrow: true
@@ -368,22 +368,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 16.3229
+      Distance: 9.26151
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.504139
-        Y: -1.02232
-        Z: 1.30479
+        X: 2.61041
+        Y: -2.36919
+        Z: 1.8382
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.3454
+      Pitch: 0.9104
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.177696
+      Yaw: 4.76088
     Saved: ~
 Window Geometry:
   Displays:
