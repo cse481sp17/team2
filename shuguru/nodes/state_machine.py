@@ -9,12 +9,22 @@ from sensor_msgs.msg import PointCloud2
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from shuguru.srv import GetCommand, PutCommand, GrabBox, PutBox
 
+"""
+Handles the logic + transition from different states of the 
+fetch robot operation. 
+"""
+
 MOVE_BASE = '/move_base'
-POSES = '/home/team2/catkin_ws/src/cse481c/shuguru/data/dests.dat'
+# Defines the shelf and different shoe box dropoff locations
+POSES = '/home/team2/catkin_ws/src/cse481c/shuguru/data/dests.dat' 
 
 markers = []
 
 class GetCommandState(State):
+    """
+    State when user orders a shoe box and that order is forwarded
+    to the robot
+    """
     def __init__(self):
         State.__init__(self,
                        outcomes=['succeeded', 'preempted', 'aborted'],
@@ -37,6 +47,10 @@ class GetCommandState(State):
 
 
 class GrabBoxState(State):
+    """
+    State when the robot arrives at the shelf and needs to grab a shoe
+    box
+    """
     def __init__(self):
         State.__init__(self,
                        outcomes=['succeeded', 'preempted', 'aborted'],
@@ -45,18 +59,26 @@ class GrabBoxState(State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GRAB_BOX')
-        return 'succeeded'
 
+        print("Waiting for grab_box service")
         rospy.wait_for_service('grab_box')
+        print("Created service proxy")
         grab_box = rospy.ServiceProxy('grab_box', GrabBox)
 
-        result = grab_box(int(userdata.shoe_id))
+        # result = grab_box(int(userdata.shoe_id))
+        # TODO: Why grab box with ID of 7? Rio
+        # TODO: Return aborted if unsuccessful 
+        result = grab_box(7)
         if result == 0:
             return 'succeeded'
         return 'succeeded'
 
 
 class PutBoxState(State):
+    """
+    State when robot has arrived at a customer designated area
+    and needs to drop the shoe box
+    """
     def __init__(self):
         State.__init__(self,
                        outcomes=['succeeded', 'preempted', 'aborted'],
@@ -72,12 +94,16 @@ class PutBoxState(State):
         userdata.goal_id = 0  # Reset the goal to the shelf
         result = put_box()
 
+        # TODO: Return aborted if unsuccessful 
         if result == 0:
             return 'succeeded'
         return 'succeeded'
 
 
 def goal_callback(userdata, goal):
+    """
+    Sets the goal of the robot to go to
+    """
     goal = MoveBaseGoal()
     goal.target_pose.header.stamp = rospy.Time()
     goal.target_pose.header.frame_id = "map"
@@ -86,8 +112,8 @@ def goal_callback(userdata, goal):
 
 
 def load_poses(load_path):
-    poses = pickle.load(open(load_path, 'rb'))
-    print(poses)
+    with open(load_path, 'rb') as f:
+        poses = pickle.load(f)
     return poses
 
 def marker_callback(self, msg):
@@ -102,6 +128,8 @@ def main():
     sm.userdata.goal_poses = load_poses(POSES)
     print(sm.userdata.goal_poses)
 
+
+    # TODO: Change the goal_id and shoe_id later
     # goal_id:  0    , 1     , 2     , ..., N
     #           shelf, seat#1, seat#2, ..., seat#N
     sm.userdata.goal_id = 0

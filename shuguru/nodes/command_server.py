@@ -4,6 +4,11 @@ import rospy
 from multiprocessing import Queue
 from shuguru.srv import PutCommand, GetCommand
 
+"""
+Starts the command server which accepts a service request
+for get and put shoe box command
+"""
+
 command_queue = None
 
 

@@ -3,5 +3,4 @@
     <include file="$(find fetch_api)/launch/ar_desktop.launch">
         <arg name="cam_image_topic" value="/head_camera/depth_registered/points" />
     </include> 
-    <!-- <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find applications)/config/ar.rviz" /> -->
 </launch>

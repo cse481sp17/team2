@@ -6,5 +6,6 @@
     </include> 
     <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find applications)/config/ar.rviz" />
     <node pkg="applications" type="keyboard_teleop.py" name="fetch_keyboard_teleop" output="screen" />
-    <node pkg="applications" type="publish_saved_cloud.py" name="fetch_publish_saved_cloud" output="screen" args="$(find perception)/data/$(arg pc_bag)" />
+    <node pkg="applications" type="publish_saved_cloud.py" name="fetch_publish_saved_cloud" output="screen" args="$(arg pc_bag)" />
+    <node pkg="applications" type="gripper_im_server.py" name="gripper_im_server" output="screen" />
 </launch>

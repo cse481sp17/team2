@@ -26,9 +26,12 @@
         "preview":"http://www.runnersworld.com/sites/runnersworld.com/files/styles/slideshow-desktop/public/nike-zoom-span_m_400.jpg",
         "sizes":{
           "Small":{
-            "id":1
+            "id":0
           },
           "Medium":{
+            "id":1
+          },
+          "Large":{
             "id":2
           }
         }
@@ -42,6 +45,9 @@
           },
           "Medium":{
             "id":4
+          },
+          "Large":{
+            "id":5
           }
         }
       },
@@ -50,10 +56,13 @@
         "preview":"http://static.quiksilver.com/www/store.quiksilver.eu/html/images/catalogs/global/dcshoes-products/all/default/medium-large2/300660_pure,p_xsgb_frt2.jpg",
         "sizes":{
           "Small":{
-            "id":5
+            "id":6
           },
           "Medium":{
-            "id":6
+            "id":7
+          },
+          "Large":{
+            "id":8
           }
         }
       }  
@@ -124,7 +133,7 @@
 
       if (typeof SendOrderShoe == "function") {
         SendOrderShoe(shoes[name].sizes[size].id, seat);
-        AlertUser("Ordered shoe id "+shoes[name].sizes[size].id+" to "+seatname, "alert-success");
+        AlertUser("Ordered a "+size+" "+name+" to "+seatname, "alert-success");
       } else {
         AlertUser("Interface not ready", "alert-danger");
       }
