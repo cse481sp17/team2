@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os 
-import dill
 import json
 import tf
 import fetch_api
@@ -38,10 +37,6 @@ def handle_grab_box(req):
     global pc_pub
     global robot_pose
 
-    def distance(before, after):
-        return ((before.x - after.x)**2
-                + (before.y - after.y)**2)**0.5
-
     # Update the Point Cloud
     pc = rospy.wait_for_message(POINT_CLOUD, PointCloud2)
     pc_pub.publish(pc)
@@ -68,38 +63,22 @@ def handle_grab_box(req):
         markers = []
         return 1
 
-    STRAIGHT = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    print("Reset the torso height")
+    torso = fetch_api.Torso()
+    torso.set_height(0)
     
-    arm = fetch_api.Arm()
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(STRAIGHT))
-    rospy.sleep(0.5)
-
     # Navigate the gripper
     print("Navigating arm to the target box")
-    print(grab_poses)
+    arm = fetch_api.Arm()
     for action in grab_poses:
-        arPose = Pose()
-        arPose.position.x = action['ar'][0]
-        arPose.position.y = action['ar'][1]
-        arPose.position.z = action['ar'][2]
-        arPose.orientation.x = action['ar'][3]
-        arPose.orientation.y = action['ar'][4]
-        arPose.orientation.z = action['ar'][5]
-        arPose.orientation.w = action['ar'][6]
-
-        wristPose = Pose()
-        wristPose.position.x = action['wrist'][0]
-        wristPose.position.y = action['wrist'][1]
-        wristPose.position.z = action['wrist'][2]
-        wristPose.orientation.x = action['wrist'][3]
-        wristPose.orientation.y = action['wrist'][4]
-        wristPose.orientation.z = action['wrist'][5]
-        wristPose.orientation.w = action['wrist'][6]
+        arPose = action[0]
+        wristPose = action[1]
 
         # Compute the pose of the wrist in base_link
         ar = fetch_api.pose2matrix(arPose)
         ar2wrist = fetch_api.pose2transform(arPose, wristPose, True)
         wrist = np.dot(fetch_api.pose2matrix(target_marker[0].pose.pose), ar2wrist)
+        print(target_marker[0].pose.header.frame_id)
 
         # Navigate the arm there
         kwargs = {
@@ -113,27 +92,34 @@ def handle_grab_box(req):
         pose_stamped.pose = fetch_api.matrix2pose(wrist)
         arm.move_to_pose(pose_stamped, **kwargs)
 
+        rospy.sleep(1.0)
         # Wait a second/100
         # TODO: Where is the wait? Rio
 
-    return 0
-
     # Rotate to face the shelf, then move forward
-    before_pos = robot_pose.position
-    after_pos = robot_pose.position
 
     base = fetch_api.Base()
 
-    while distance(before_pos, after_pos) < 0.5:
-        base.move(0.5, 0.0)
+    def distance(before, after):
+        return ((before.x - after.x)**2
+                + (before.y - after.y)**2)**0.5
 
-    # Move the torso up
+    before_pos = robot_pose.position
+    after_pos = robot_pose.position
+    while distance(before_pos, after_pos) < 0.2:
+        after_pos = robot_pose.position
+        base.move(0.1, 0.0)
+
+    print("Move the torso up")
     torso = fetch_api.Torso()
-    torso.set_height(target_marker[0].pose.pose.z)
+    torso.set_height(0.1)
 
     # Back up the base
-    while distance(before_pos, after_pos) > 0.1:
-        base.move(-0.5, 0.0)
+    before_pos = robot_pose.position
+    after_pos = robot_pose.position
+    while distance(before_pos, after_pos) < 0.2:
+        after_pos = robot_pose.position
+        base.move(-0.1, 0.0)
 
     # Empty markers for the next call
     markers = []
@@ -166,23 +152,47 @@ def poseCallback(msg):
 
 
 def load(fileName):
+    global grab_poses
+
     if len(fileName) == 0:
-        return
+        return("Invalid file name")
 
     try:
         with open(fileName, 'r') as f:
-            actions = json.load(f)
+            actions_json = json.load(f)
         print("Succeeded loading json.")
-        print (actions)
     except Exception as e:
         print("Failed loading json.", e)
-        actions = []
-    return actions
+        actions_json = []
+
+    # self.actions = []
+    for action in actions_json:
+        arPose = Pose()
+        arPose.position.x = action['ar'][0]
+        arPose.position.y = action['ar'][1]
+        arPose.position.z = action['ar'][2]
+        arPose.orientation.x = action['ar'][3]
+        arPose.orientation.y = action['ar'][4]
+        arPose.orientation.z = action['ar'][5]
+        arPose.orientation.w = action['ar'][6]
+
+        wristPose = Pose()
+        wristPose.position.x = action['wrist'][0]
+        wristPose.position.y = action['wrist'][1]
+        wristPose.position.z = action['wrist'][2]
+        wristPose.orientation.x = action['wrist'][3]
+        wristPose.orientation.y = action['wrist'][4]
+        wristPose.orientation.z = action['wrist'][5]
+        wristPose.orientation.w = action['wrist'][6]
+
+        # self.actions.append(ActionType(ActionSaver.MOVE, action['arId'],
+        #                     arPose=arPose, wristPose=wristPose))
+
+        grab_poses.append([arPose, wristPose])
 
 
 def main():
     global pc_pub
-    global grab_poses
 
     rospy.init_node('manipulation_server')
 
@@ -190,7 +200,7 @@ def main():
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
-    grab_poses = load(DATA_PATH + "/poke3.dat")
+    load(DATA_PATH + "/test.p")
 
     rospy.Service('grab_box', GrabBox, handle_grab_box)
     print("Ready to grab boxes.")

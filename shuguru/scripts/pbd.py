@@ -50,10 +50,10 @@ class ActionSaver(object):
 
         json_actions = []
         for action in self.actions:
-            print (action.arPose)
-            print (action.wristPose)
             if action.action == ActionSaver.MOVE:
                 json_action = {
+                    "arId": action.arId,
+                    "action": action.action,
                     "ar": [action.arPose.position.x,
                            action.arPose.position.y,
                            action.arPose.position.z,
@@ -77,12 +77,38 @@ class ActionSaver(object):
 
     def load(self, fileName):
         if len(fileName) == 0:
-            print("Invalid Name: Empty string")
-            return
+            return("Invalid file name")
+
         try:
-            self.actions = dill.load(open(fileName, 'rb'))
-        except:
-            self.actions = []
+            with open(fileName, 'r') as f:
+                actions_json = json.load(f)
+            print("Succeeded loading json.")
+        except Exception as e:
+            print("Failed loading json.", e)
+            actions_json = []
+
+        self.actions = []
+        for action in actions_json:
+            arPose = Pose()
+            arPose.position.x = action['ar'][0]
+            arPose.position.y = action['ar'][1]
+            arPose.position.z = action['ar'][2]
+            arPose.orientation.x = action['ar'][3]
+            arPose.orientation.y = action['ar'][4]
+            arPose.orientation.z = action['ar'][5]
+            arPose.orientation.w = action['ar'][6]
+
+            wristPose = Pose()
+            wristPose.position.x = action['wrist'][0]
+            wristPose.position.y = action['wrist'][1]
+            wristPose.position.z = action['wrist'][2]
+            wristPose.orientation.x = action['wrist'][3]
+            wristPose.orientation.y = action['wrist'][4]
+            wristPose.orientation.z = action['wrist'][5]
+            wristPose.orientation.w = action['wrist'][6]
+
+            self.actions.append(ActionType(ActionSaver.MOVE, action['arId'],
+                                arPose=arPose, wristPose=wristPose))
     
     def delete(self, actionIdx):
         if actionIdx >= len(self.actions):
@@ -113,6 +139,7 @@ class ActionSaver(object):
                 print("")
             cin = raw_input("> ")
             indexIn = int(cin)
+            print(self.markers[indexIn].pose.header.frame_id)
             arPose = self.markers[indexIn].pose.pose
             # Create Action
             action = ActionType(ActionSaver.MOVE, self.markers[indexIn].id, arPose, wristPose)
