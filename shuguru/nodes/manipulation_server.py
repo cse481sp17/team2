@@ -35,8 +35,7 @@ def handle_grab_box(req):
     global markers
     global grab_poses
     global pc_pub
-    global robot_pose
-
+    global robot_pos
     # Update the Point Cloud
     pc = rospy.wait_for_message(POINT_CLOUD, PointCloud2)
     pc_pub.publish(pc)
@@ -66,37 +65,45 @@ def handle_grab_box(req):
     print("Reset the torso height")
     torso = fetch_api.Torso()
     torso.set_height(0)
+
+    INITIAL_POSE = [-0.05, 1.57, 3.09, 2.06, 3.04, 0.57, -3.01]
+    arm = fetch_api.Arm()
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
     
     # Navigate the gripper
     print("Navigating arm to the target box")
     arm = fetch_api.Arm()
+    gripper = fetch_api.Gripper()
     for action in grab_poses:
-        arPose = action[0]
-        wristPose = action[1]
+        if action[0] == 'MOVE':
+            arPose = action[1]
+            wristPose = action[2]
 
-        # Compute the pose of the wrist in base_link
-        ar = fetch_api.pose2matrix(arPose)
-        ar2wrist = fetch_api.pose2transform(arPose, wristPose, True)
-        wrist = np.dot(fetch_api.pose2matrix(target_marker[0].pose.pose), ar2wrist)
-        print(target_marker[0].pose.header.frame_id)
+            # Compute the pose of the wrist in base_link
+            ar = fetch_api.pose2matrix(arPose)
+            ar2wrist = fetch_api.pose2transform(arPose, wristPose, True)
+            wrist = np.dot(fetch_api.pose2matrix(target_marker[0].pose.pose), ar2wrist)
+            print(target_marker[0].pose.header.frame_id)
 
-        # Navigate the arm there
-        kwargs = {
-            'allowed_planning_time': 50,
-            'execution_timeout': 40,
-            'num_planning_attempts': 30,
-            'replan': False,
-        }
-        pose_stamped = PoseStamped()
-        pose_stamped.header.frame_id = "base_link"
-        pose_stamped.pose = fetch_api.matrix2pose(wrist)
-        arm.move_to_pose(pose_stamped, **kwargs)
+            # Navigate the arm there
+            kwargs = {
+                'allowed_planning_time': 50,
+                'execution_timeout': 40,
+                'num_planning_attempts': 30,
+                'replan': False,
+            }
+            pose_stamped = PoseStamped()
+            pose_stamped.header.frame_id = "base_link"
+            pose_stamped.pose = fetch_api.matrix2pose(wrist)
+            arm.move_to_pose(pose_stamped, **kwargs)
 
-        rospy.sleep(1.0)
-        # Wait a second/100
-        # TODO: Where is the wait? Rio
+            rospy.sleep(1.0)
 
-    # Rotate to face the shelf, then move forward
+        elif action[1] == 'OPEN':
+            gripper.open()
+
+        elif action[2] == 'CLOSE':
+            gripper.close()
 
     base = fetch_api.Base()
 
@@ -129,15 +136,13 @@ def handle_grab_box(req):
 def handle_put_box(req):
     global put_poses
 
-    DISCO_POSES = [[1.5, -0.6, 3.0, 1.0, 3.0, 1.0, 3.0],
-                   [1.5, -0.6, 3.0, 1.0, 3.0, 1.0, 3.0]]
-
     torso = fetch_api.Torso()
     torso.set_height(fetch_api.Torso.MAX_HEIGHT)
     
+    DROP_BOX_POSE = [-0.11, 1.43, 2.97, 1.91, 3.06, 1.10, -3.01]
     arm = fetch_api.Arm()
-    for pose in DISCO_POSES:
-        arm.move_to_joints(fetch_api.ArmJoints.from_list(pose))
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+
     return 0
 
 
@@ -167,28 +172,40 @@ def load(fileName):
 
     # self.actions = []
     for action in actions_json:
-        arPose = Pose()
-        arPose.position.x = action['ar'][0]
-        arPose.position.y = action['ar'][1]
-        arPose.position.z = action['ar'][2]
-        arPose.orientation.x = action['ar'][3]
-        arPose.orientation.y = action['ar'][4]
-        arPose.orientation.z = action['ar'][5]
-        arPose.orientation.w = action['ar'][6]
+        if action.action == 0:
+            arPose = Pose()
+            arPose.position.x = action['ar'][0]
+            arPose.position.y = action['ar'][1]
+            arPose.position.z = action['ar'][2]
+            arPose.orientation.x = action['ar'][3]
+            arPose.orientation.y = action['ar'][4]
+            arPose.orientation.z = action['ar'][5]
+            arPose.orientation.w = action['ar'][6]
 
-        wristPose = Pose()
-        wristPose.position.x = action['wrist'][0]
-        wristPose.position.y = action['wrist'][1]
-        wristPose.position.z = action['wrist'][2]
-        wristPose.orientation.x = action['wrist'][3]
-        wristPose.orientation.y = action['wrist'][4]
-        wristPose.orientation.z = action['wrist'][5]
-        wristPose.orientation.w = action['wrist'][6]
+            wristPose = Pose()
+            wristPose.position.x = action['wrist'][0]
+            wristPose.position.y = action['wrist'][1]
+            wristPose.position.z = action['wrist'][2]
+            wristPose.orientation.x = action['wrist'][3]
+            wristPose.orientation.y = action['wrist'][4]
+            wristPose.orientation.z = action['wrist'][5]
+            wristPose.orientation.w = action['wrist'][6]
+
+            grab_poses.append(['MOVE', arPose, wristPose])
+
+        elif action.action == 1:
+            grab_poses.append(['OPEN'])
+
+        elif action.action == 2:
+            grab_poses.append(['CLOSE'])
+
+        else:
+            print("Invalid action file")
+            exit(0)
 
         # self.actions.append(ActionType(ActionSaver.MOVE, action['arId'],
         #                     arPose=arPose, wristPose=wristPose))
 
-        grab_poses.append([arPose, wristPose])
 
 
 def main():
