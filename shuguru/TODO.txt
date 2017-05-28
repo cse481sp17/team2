@@ -1,8 +1,0 @@
-1. Pass map file of our choice to navigation node launched via launch file.
-2. Document everything that needs to be launched when running our application (navigation, marker detection, etc) 
-3. Pass map of class to navigation and use our command line tool to set markers for the shelf and 1 or 2 station
-4. Pass map of class to navigation and run our state machine program - if robot successfully goes from shelf to station and back, that means AR detection works
-
-Qs:
-Does the state machine create a new instance of the state object each time it reaches it, or does it only use one instance throughout?
-

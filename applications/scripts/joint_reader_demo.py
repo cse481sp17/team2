@@ -22,6 +22,14 @@ def main():
     arm_vals = reader.get_joints(names)
     for k, v in zip(names, arm_vals):
         print '{}\t{}'.format(k, v)
+
+    headJointNames = ['head_pan_joint', 'head_tilt_joint']
+    head_vals = reader.get_joints(headJointNames)
+
+    print '--------'
+    
+    for k, v in zip(headJointNames, head_vals):
+        print '{}\t{}'.format(k, v)
                       
                       
 if __name__ == '__main__':

@@ -3,7 +3,8 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /InteractiveMarkers1
       Splitter Ratio: 0.642442
     Tree Height: 775
   - Class: rviz/Selection
@@ -333,7 +334,7 @@ Visualization Manager:
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
-      Update Topic: /marker_server/update
+      Update Topic: /gripper_im_server/update
       Value: true
     - Class: rviz/Marker
       Enabled: true
@@ -368,7 +369,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.26151
+      Distance: 6.84018
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -380,10 +381,10 @@ Visualization Manager:
         Z: 1.8382
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.9104
+      Pitch: 0.6454
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.76088
+      Yaw: 4.38586
     Saved: ~
 Window Geometry:
   Displays:

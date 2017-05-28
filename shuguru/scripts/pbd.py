@@ -7,6 +7,7 @@ import fetch_api
 import numpy as np
 from geometry_msgs.msg import Pose, PoseStamped
 from ar_track_alvar_msgs.msg import AlvarMarkers
+from visualization_msgs.msg import Marker
 
 def help():
     print "Commands"
@@ -41,6 +42,7 @@ class ActionSaver(object):
         self.actions = []
         self.markers = []
         self.ar_sub = rospy.Subscriber('ar_pose_marker', AlvarMarkers, self.arCallback)
+        self.viz_pub = rospy.Publisher('motion_plan_goal', Marker)
         self.listener = tf.TransformListener()
     
     def save(self, fileName):
@@ -184,6 +186,30 @@ class ActionSaver(object):
                 pose_stamped = PoseStamped()
                 pose_stamped.header.frame_id = "base_link"
                 pose_stamped.pose = fetch_api.matrix2pose(wrist)
+
+                marker = Marker()
+                marker.header.frame_id = "base_link"
+                marker.header.stamp = rospy.Time()
+                marker.ns = "motion_plan_goal"
+                marker.id = 0;
+                marker.type = Marker.ARROW
+                marker.action = Marker.ADD
+                marker.pose.position.x = pose_stamped.pose.position.x
+                marker.pose.position.y = pose_stamped.pose.position.y
+                marker.pose.position.z = pose_stamped.pose.position.z
+                marker.pose.orientation.x = pose_stamped.pose.orientation.x
+                marker.pose.orientation.y = pose_stamped.pose.orientation.y
+                marker.pose.orientation.z = pose_stamped.pose.orientation.z
+                marker.pose.orientation.w = pose_stamped.pose.orientation.w
+                marker.scale.x = 0.2
+                marker.scale.y = 0.05
+                marker.scale.z = 0.05;
+                marker.color.a = 1.0;
+                marker.color.r = 1.0;
+                marker.color.g = 0.0;
+                marker.color.b = 0.0;
+                self.viz_pub.publish(marker);
+
                 arm.move_to_pose(pose_stamped, **kwargs)
                 # Wait?
 

@@ -28,6 +28,10 @@ put_poses = []
 pc_pub = None
 robot_pose = None
 
+def distance(before, after):
+    return ((before.x - after.x)**2
+                + (before.y - after.y)**2)**0.5
+
 def handle_grab_box(req):
     """ 
     Given a req, grabs the shoe box at the shoe shelf
@@ -36,6 +40,25 @@ def handle_grab_box(req):
     global grab_poses
     global pc_pub
     global robot_pos
+    
+    # Prepare for grabbing the box
+    print("Reset the torso height")
+    torso = fetch_api.Torso()
+    torso.set_height(fetch_api.torso.MIN_HEIGHT)
+
+    # Move the arm to inital position
+    arm = fetch_api.Arm()
+    INITIAL_POSE = [-0.0482, 1.573, 3.091, 2.056, 3.04, 0.57, -3.01]
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+
+    # Move forward
+    base = fetch_api.Base()
+    before_pos = robot_pose.position
+    after_pos = robot_pose.position
+    while distance(before_pos, after_pos) < 0.2:
+        after_pos = robot_pose.position
+        base.move(0.1, 0.0)
+ 
     # Update the Point Cloud
     pc = rospy.wait_for_message(POINT_CLOUD, PointCloud2)
     pc_pub.publish(pc)
@@ -61,18 +84,9 @@ def handle_grab_box(req):
         print("Didn't find the target marker")
         markers = []
         return 1
-
-    print("Reset the torso height")
-    torso = fetch_api.Torso()
-    torso.set_height(0)
-
-    INITIAL_POSE = [-0.05, 1.57, 3.09, 2.06, 3.04, 0.57, -3.01]
-    arm = fetch_api.Arm()
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
     
     # Navigate the gripper
     print("Navigating arm to the target box")
-    arm = fetch_api.Arm()
     gripper = fetch_api.Gripper()
     for action in grab_poses:
         if action[0] == 'MOVE':
@@ -105,18 +119,7 @@ def handle_grab_box(req):
         elif action[2] == 'CLOSE':
             gripper.close()
 
-    base = fetch_api.Base()
-
-    def distance(before, after):
-        return ((before.x - after.x)**2
-                + (before.y - after.y)**2)**0.5
-
-    before_pos = robot_pose.position
-    after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.2:
-        after_pos = robot_pose.position
-        base.move(0.1, 0.0)
-
+    
     print("Move the torso up")
     torso = fetch_api.Torso()
     torso.set_height(0.1)
@@ -128,23 +131,43 @@ def handle_grab_box(req):
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
 
+    # Set torso back down
+    torso = fetch_api.Torso()
+    torso.set_height(fetch_api.torso.MIN_HEIGHT)
+
     # Empty markers for the next call
     markers = []
     return 0
 
 
 def handle_put_box(req):
+    """
+    Robot arrived at station, drop the box.
+    """
     global put_poses
 
     torso = fetch_api.Torso()
-    torso.set_height(fetch_api.Torso.MAX_HEIGHT)
-    
-    DROP_BOX_POSE = [-0.11, 1.43, 2.97, 1.91, 3.06, 1.10, -3.01]
+    torso.set_height(fetch_api.Torso.MIN_HEIGHT)
+
+    # Drop the box 
+    DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, -3.01]
     arm = fetch_api.Arm()
     arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+    gripper = fetch_api.Gripper()
+    gripper.open()
+
+    # Move to intial pose
+    INITIAL_POSE = [-0.0482, 1.573, 3.091, 2.056, 3.04, 0.57, -3.01]
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+
+    # Move back 
+    before_pos = robot_pose.position
+    after_pos = robot_pose.position
+    while distance(before_pos, after_pos) < 0.2:
+        after_pos = robot_pose.position
+        base.move(-0.1, 0.0)
 
     return 0
-
 
 def arCallback(msg):
     global markers

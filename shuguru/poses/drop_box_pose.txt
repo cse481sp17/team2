@@ -1,0 +1,7 @@
+shoulder_pan_joint	-0.114997002822
+shoulder_lift_joint	1.43169918105
+upperarm_roll_joint	2.97616230718
+elbow_flex_joint	1.90866273793
+forearm_roll_joint	3.06532767772
+wrist_flex_joint	1.09922636398
+wrist_roll_joint	-3.01836552572

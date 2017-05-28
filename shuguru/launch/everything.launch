@@ -1,7 +1,7 @@
 <launch>
 
     <arg name="pc_topic" default="/mock_point_cloud" />
-    <arg name="pc_bag" default="$(find shuguru)/data/shoeboxes.bag" />
+    <arg name="pc_bag" default="$(find shuguru)/data/simulation/shelf_2x2_boxes.bag" />
     <!-- "/current_point_cloud" for real robot-->
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
@@ -15,6 +15,6 @@
     <node pkg="shuguru" type="command_server.py" name="command_server" output="screen"/>
     <node pkg="shuguru" type="manipulation_server.py" name="manipulation_server" output="screen"/>
     <node pkg="shuguru" type="state_machine.py" name="state_machine" output="screen"/>
-    <node pkg="tf" type="static_transform_publisher" name="shelf_broadcaster" args="3.0 0.5 0.0 0.0 0.0 0.0 1 map shelf 100" />
+    <node pkg="tf" type="static_transform_publisher" name="shelf_broadcaster" args="2.0 0.5 0.0 0.0 0.0 0.0 1 map shelf 100" />
 
 </launch>

@@ -8,9 +8,17 @@ roslaunch applications navigation.launch
 rosrun applications keyboard_teleop.py
 rosrun map_annotator cli.py
 
+" Save as dests.dat"
+
 # To save poses for grabbing boxes
 roslaunch applications reach_ar_markers.launch pc_bag:=$(rospack find shuguru)/data/shoeboxes.bag
 rosrun applications pbd.py
 
+" Save as shoeboxes.bag"
+
 # To launch frontend with given index file
 python -m SimpleHTTPServer 8080 shuguru/frontend  
+
+# Changing Point Cloud Location
+" Change the corresponding x, y, z arg under everything.launch node
+ static_transform_publisher arg value"
