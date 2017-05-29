@@ -23,7 +23,7 @@ POINT_CLOUD = "/head_camera/depth_registered/points"
 MOTION_PLAN_GOAL = "/motion_plan_goal"
 CURRENT_POINT_CLOUD = "/current_point_cloud"
 DATA_PATH = "/home/team2/catkin_ws/src/cse481c/shuguru/data"
-INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.66, -1.059]
+INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.086, 0]
 PREPARE_POSE = [-0.0482, 1.51, 3.091, 2.056, 3.04, 0.57, 0.0]
 DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, 0.0]
 SHELF_HEAD_POSE = [0.0,0.2985]
@@ -64,7 +64,7 @@ def handle_grab_box(req):
 
     # Move torso higher if on top shelf:
     if req.ar_id == 6 or req.ar_id == 7:
-        beginHeight = 0.35
+        beginHeight = 0.2
     torso.set_height(beginHeight)
 
     head.pan_tilt(*SHELF_HEAD_POSE)
@@ -115,7 +115,7 @@ def handle_grab_box(req):
             # Navigate the arm there
             kwargs = {
                 'allowed_planning_time': 50,
-                'execution_timeout': 60,
+                'execution_timeout': 40,
                 'num_planning_attempts': 30,
                 'replan': False,
             }
@@ -207,7 +207,7 @@ def handle_put_box(req):
     rospy.sleep(0.5)
 
     # Move to intial pose
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
 
     # Move back 
     print("Dropped box, backing up")

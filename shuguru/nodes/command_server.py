@@ -14,12 +14,14 @@ command_queue = None
 
 def handle_put_command(req):
     global command_queue
+    print("Put request received.", req)
     command_queue.put(req)
     return 1
 
 
 def handle_get_command(req):
     global command_queue
+    print("Get request received.", req)
     get = command_queue.get()
     return (get.shoe_id, get.goal_id)
 
