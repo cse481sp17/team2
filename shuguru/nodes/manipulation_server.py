@@ -287,7 +287,7 @@ def main():
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
-    load(DATA_PATH + "/grab_box_sim.json")
+    load(DATA_PATH + "/grab_box.json")
 
     rospy.Service('grab_box', GrabBox, handle_grab_box)
     print("Ready to grab boxes.")
