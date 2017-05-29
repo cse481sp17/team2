@@ -184,7 +184,6 @@ class ActionSaver(object):
                 ar = fetch_api.pose2matrix(action.arPose)
 
                 ar2wrist = fetch_api.pose2transform(action.arPose, action.wristPose, True)
-                
                 # Save the ar marker's id and load it
                 wrist = np.dot(fetch_api.pose2matrix(filter(lambda x: x.id == action.arId, self.markers)[0].pose.pose), ar2wrist)
                 # Navigate the arm there
