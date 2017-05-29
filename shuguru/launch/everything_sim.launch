@@ -5,7 +5,7 @@
     <!-- "/current_point_cloud" for real robot-->
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
-    <include file="$(find applications)/launch/navigation.launch" />
+    <include file="$(find applications)/launch/navigation_sim.launch" />
     <include file="$(find fetch_api)/launch/ar_desktop.launch">
         <arg name="cam_image_topic" value="$(arg pc_topic)" />
     </include>
