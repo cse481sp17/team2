@@ -1,3 +1,6 @@
+## State machine reads data/grab_box.json and data/dests.dat
+## Don't forget changing the symlink accordingly (simulation vs. real robot).
+
 # To start state machine in simulation
 roslaunch fetch_gazebo playground.launch
 roslaunch shuguru everything_sim.launch
@@ -5,6 +8,7 @@ roslaunch shuguru everything_sim.launch
 # To start state machine on real robot
 roslaunch shuguru everything.launch
 roslaunch shuguru visualization.launch
+
 
 # To save destinations
 roslaunch map_annotator set_goals.launch file_path:=$(rospack find shuguru)/data/dests.dat
