@@ -148,7 +148,7 @@ def main():
                              output_keys=[]),
                          transitions={'succeeded': 'GET_COMMAND',
                                       'preempted': 'aborted',
-                                      'aborted': 'aborted'},
+                                      'aborted': 'GO_SHELF'},
                          remapping={})
 
         StateMachine.add('GET_COMMAND',
