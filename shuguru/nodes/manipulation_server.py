@@ -115,7 +115,7 @@ def handle_grab_box(req):
             # Navigate the arm there
             kwargs = {
                 'allowed_planning_time': 50,
-                'execution_timeout': 40,
+                'execution_timeout': 60,
                 'num_planning_attempts': 30,
                 'replan': False,
             }
@@ -172,7 +172,7 @@ def handle_grab_box(req):
     head.pan_tilt(*MOVING_HEAD_POSE)
     before_pos = robot_pose.position
     after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.2:
+    while distance(before_pos, after_pos) < 0.15:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
 
@@ -213,7 +213,7 @@ def handle_put_box(req):
     print("Dropped box, backing up")
     before_pos = robot_pose.position
     after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.2:
+    while distance(before_pos, after_pos) < 0.15:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
         
