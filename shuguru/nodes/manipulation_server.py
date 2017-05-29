@@ -60,7 +60,13 @@ def handle_grab_box(req):
 
     # Move the arm, gripper, toros and head to initial position
     gripper.open()
-    torso.set_height(torso.MIN_HEIGHT)
+    beginHeight = torso.MIN_HEIGHT
+
+    # Move torso higher if on top shelf:
+    if req.ar_id == 6 or req.ar_id == 7:
+        beginHeight = 0.35
+    torso.set_height(beginHeight)
+
     head.pan_tilt(*SHELF_HEAD_POSE)
     arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
     rospy.sleep(1.0)
@@ -160,8 +166,7 @@ def handle_grab_box(req):
     gripper.close()
 
     print("Grabbed the box, moving torso up")
-    torso = fetch_api.Torso()
-    torso.set_height(0.1)
+    torso.set_height(beginHeight + 0.1)
 
     # Back up the base, set torso back down and head back up
     head.pan_tilt(*MOVING_HEAD_POSE)
