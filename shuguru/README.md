@@ -4,9 +4,7 @@ roslaunch shuguru everything.launch
 
 # To save destinations
 roslaunch map_annotator set_goals.launch file_path:=$(rospack find shuguru)/data/dests.dat
-roslaunch applications navigation.launch
-rosrun applications keyboard_teleop.py
-rosrun map_annotator cli.py
+roslaunch applications navigation.launch map_file:=$(rospack find shuguru)/maps/map.yaml
 
 " Save as dests.dat"
 

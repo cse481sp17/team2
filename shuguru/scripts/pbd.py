@@ -136,7 +136,7 @@ class ActionSaver(object):
             # Save ar_marker's pose in base_link frame
             print("Relative to which marker do you want to save this pose?")
             for i, marker in enumerate(self.markers):
-                print(i)
+                print(i, "ID: ", marker.id)
                 print(marker.pose.pose.position)
                 print("")
             cin = raw_input("> ")
@@ -190,7 +190,6 @@ class ActionSaver(object):
                 marker = Marker()
                 marker.header.frame_id = "base_link"
                 marker.header.stamp = rospy.Time()
-                marker.ns = "motion_plan_goal"
                 marker.id = 0;
                 marker.type = Marker.ARROW
                 marker.action = Marker.ADD

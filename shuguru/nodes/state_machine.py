@@ -28,7 +28,7 @@ class GetCommandState(State):
     """
     def __init__(self):
         State.__init__(self,
-                       outcomes=['succeeded', 'preempted', 'aborted'],
+                       outcomes=['succeeded', 'aborted'],
                        input_keys=['goal_id', 'shoe_id'],
                        output_keys=['goal_id', 'shoe_id'])
 
@@ -54,9 +54,9 @@ class GrabBoxState(State):
     """
     def __init__(self):
         State.__init__(self,
-                       outcomes=['succeeded', 'preempted', 'aborted'],
+                       outcomes=['succeeded', 'aborted'],
                        input_keys=['shoe_id'],
-                       output_keys=[])
+                       output_keys=['goal_id'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GRAB_BOX')
@@ -65,16 +65,14 @@ class GrabBoxState(State):
         rospy.wait_for_service('grab_box')
         print("Created service proxy")
         grab_box = rospy.ServiceProxy('grab_box', GrabBox)
-
-        # result = grab_box(int(userdata.shoe_id))
-        # TODO: Why grab box with ID of 7? Rio
-        # TODO: Return aborted if unsuccessful 
-        result = grab_box(7)
-        if result == 0:
+        result = grab_box(int(userdata.shoe_id))
+        if result.result == 0:
             return 'succeeded'
         rospy.loginfo("Grab box state unsuccessful for "
                 + str(userdata.shoe_id) + ", aborting...")
-        return 'succeeded'
+
+        userdata.goal_id = SHELF  # Reset the goal to the shelf
+        return 'aborted'
 
 
 class PutBoxState(State):
@@ -84,7 +82,7 @@ class PutBoxState(State):
     """
     def __init__(self):
         State.__init__(self,
-                       outcomes=['succeeded', 'preempted', 'aborted'],
+                       outcomes=['succeeded', 'aborted'],
                        input_keys=['goal_id'],
                        output_keys=['goal_id'])
 
@@ -98,10 +96,10 @@ class PutBoxState(State):
         result = put_box()
 
         # TODO: Return aborted if unsuccessful 
-        if result == 0:
+        if result.result == 0:
             return 'succeeded'
         rospy.loginfo("Put box failed, aborting...")
-        return 'succeeded'
+        return 'aborted'
 
 
 def goal_callback(userdata, goal):
@@ -126,7 +124,7 @@ def load_dest_poses(load_path):
 
 def main():
     rospy.init_node('state_machine')
-    sm = StateMachine(['succeeded', 'preempted', 'aborted'])
+    sm = StateMachine(['succeeded', 'aborted'])
 
     # load pre-defined goal poses from pickle file
     sm.userdata.goal_poses = load_dest_poses(POSES)
@@ -149,22 +147,20 @@ def main():
                              input_keys=['goal_poses', 'goal_id'],
                              output_keys=[]),
                          transitions={'succeeded': 'GET_COMMAND',
-                                      'preempted': 'preempted',
+                                      'preempted': 'aborted',
                                       'aborted': 'aborted'},
                          remapping={})
 
         StateMachine.add('GET_COMMAND',
                          GetCommandState(),
                          transitions={'succeeded': 'GRAB_BOX',
-                                      'preempted': 'preempted',
-                                      'aborted': 'aborted'}, # If failed, retry by going back to GO Shelf
+                                      'aborted': 'aborted'}, 
                          remapping={})
 
         StateMachine.add('GRAB_BOX',
                          GrabBoxState(),
                          transitions={'succeeded': 'GO_SEAT',
-                                      'preempted': 'preempted',
-                                      'aborted': 'aborted'}, # Retry?
+                                      'aborted': 'GO_SHELF'}, 
                          remapping={})
 
         StateMachine.add('GO_SEAT',
@@ -175,15 +171,14 @@ def main():
                              input_keys=['goal_poses', 'goal_id'],
                              output_keys=[]),
                          transitions={'succeeded': 'PUT_BOX',
-                                      'preempted': 'preempted',
-                                      'aborted': 'aborted'},
+                                      'preempted': 'aborted',
+                                      'aborted': 'GO_SEAT'},
                          remapping={})
 
         StateMachine.add('PUT_BOX',
                          PutBoxState(),
                          transitions={'succeeded': 'GO_SHELF',
-                                      'preempted': 'preempted',
-                                      'aborted': 'aborted'}, # Does go seat actually go to seat or to the shelf
+                                      'aborted': 'GO_SEAT'},
                          remapping={})
 
         # Create an instrospection server

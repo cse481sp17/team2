@@ -7,6 +7,7 @@ import fetch_api
 import numpy as np
 import rospy
 from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped
+from visualization_msgs.msg import Marker
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from sensor_msgs.msg import PointCloud2
 from shuguru.srv import PutBox, GrabBox
@@ -19,8 +20,14 @@ and the action that puts down the shoe box.
 AR_POSE = "/ar_pose_marker"
 AMCL_POSE = "/amcl_pose"
 POINT_CLOUD = "/head_camera/depth_registered/points"
+MOTION_PLAN_GOAL = "/motion_plan_goal"
 CURRENT_POINT_CLOUD = "/current_point_cloud"
 DATA_PATH = "/home/team2/catkin_ws/src/cse481c/shuguru/data"
+INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.66, -1.059]
+PREPARE_POSE = [-0.0482, 1.51, 3.091, 2.056, 3.04, 0.57, 0.0]
+DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, 0.0]
+SHELF_HEAD_POSE = [0.0,0.2985]
+MOVING_HEAD_POSE = [0.0,0.0]
 
 markers = []
 grab_poses = []
@@ -39,38 +46,38 @@ def handle_grab_box(req):
     global markers
     global grab_poses
     global pc_pub
+    global viz_pub
     global robot_pos
     
-    # Prepare for grabbing the box
-    print("Reset the torso height")
-    torso = fetch_api.Torso()
-    torso.set_height(fetch_api.torso.MIN_HEIGHT)
-
-    # Move the arm to inital position
     arm = fetch_api.Arm()
-    INITIAL_POSE = [-0.0482, 1.573, 3.091, 2.056, 3.04, 0.57, -3.01]
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
-
-    # Move forward
+    gripper = fetch_api.Gripper()
+    torso = fetch_api.Torso()
+    head = fetch_api.Head()
     base = fetch_api.Base()
-    before_pos = robot_pose.position
-    after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.2:
-        after_pos = robot_pose.position
-        base.move(0.1, 0.0)
- 
+
+    # Prepare for grabbing the box
+    print("Preparing to Grab Box, setting height + arm")
+
+    # Move the arm, gripper, toros and head to initial position
+    gripper.open()
+    torso.set_height(torso.MIN_HEIGHT)
+    head.pan_tilt(*SHELF_HEAD_POSE)
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
+    rospy.sleep(1.0)
+
     # Update the Point Cloud
     pc = rospy.wait_for_message(POINT_CLOUD, PointCloud2)
     pc_pub.publish(pc)
 
-    # TODO: Change 3 to be reflect number of 
-    # Wait until markers are updated
+    # Wait 3 seconds until markers are updated
     for i in range(3):
         print("Waiting for the markers... {}/3".format(i))
         if any(markers):
             break
         if i == 2:
             print("Didn't find any marker")
+            arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+            rospy.sleep(1.0)
             return 1
         rospy.sleep(1.0)
 
@@ -83,11 +90,11 @@ def handle_grab_box(req):
     if not any(target_marker):
         print("Didn't find the target marker")
         markers = []
+        arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+        rospy.sleep(1.0)
         return 1
-    
     # Navigate the gripper
     print("Navigating arm to the target box")
-    gripper = fetch_api.Gripper()
     for action in grab_poses:
         if action[0] == 'MOVE':
             arPose = action[1]
@@ -109,31 +116,66 @@ def handle_grab_box(req):
             pose_stamped = PoseStamped()
             pose_stamped.header.frame_id = "base_link"
             pose_stamped.pose = fetch_api.matrix2pose(wrist)
-            arm.move_to_pose(pose_stamped, **kwargs)
+
+            mp_marker = Marker()
+            mp_marker.header.frame_id = "base_link"
+            mp_marker.header.stamp = rospy.Time()
+            mp_marker.id = 0;
+            mp_marker.type = Marker.ARROW
+            mp_marker.action = Marker.ADD
+            mp_marker.ns = 'motion_plan_goal'
+            mp_marker.pose.position.x = pose_stamped.pose.position.x
+            mp_marker.pose.position.y = pose_stamped.pose.position.y
+            mp_marker.pose.position.z = pose_stamped.pose.position.z
+            mp_marker.pose.orientation.x = pose_stamped.pose.orientation.x
+            mp_marker.pose.orientation.y = pose_stamped.pose.orientation.y
+            mp_marker.pose.orientation.z = pose_stamped.pose.orientation.z
+            mp_marker.pose.orientation.w = pose_stamped.pose.orientation.w
+            mp_marker.scale.x = 0.2
+            mp_marker.scale.y = 0.05
+            mp_marker.scale.z = 0.05;
+            mp_marker.color.a = 1.0;
+            mp_marker.color.r = 1.0;
+            mp_marker.color.g = 0.0;
+            mp_marker.color.b = 0.0;
+            viz_pub.publish(mp_marker);
+
+            error = arm.move_to_pose(pose_stamped, **kwargs)
+            if error is None:
+                rospy.loginfo('Moved to the target marker')
+            else:
+                rospy.logwarn('Failed to move to the target marker')
+                arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+                rospy.sleep(1.0)
+                return 1
 
             rospy.sleep(1.0)
 
-        elif action[1] == 'OPEN':
+        elif action[0] == 'OPEN':
             gripper.open()
 
-        elif action[2] == 'CLOSE':
+        elif action[0] == 'CLOSE':
             gripper.close()
 
-    
-    print("Move the torso up")
+    gripper.close()
+
+    print("Grabbed the box, moving torso up")
     torso = fetch_api.Torso()
     torso.set_height(0.1)
 
-    # Back up the base
+    # Back up the base, set torso back down and head back up
+    head.pan_tilt(*MOVING_HEAD_POSE)
     before_pos = robot_pose.position
     after_pos = robot_pose.position
     while distance(before_pos, after_pos) < 0.2:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
 
-    # Set torso back down
-    torso = fetch_api.Torso()
-    torso.set_height(fetch_api.torso.MIN_HEIGHT)
+    torso.set_height(torso.MIN_HEIGHT)
+
+    # Set arm to initial position
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
+    rospy.sleep(1.0)
 
     # Empty markers for the next call
     markers = []
@@ -147,32 +189,34 @@ def handle_put_box(req):
     global put_poses
 
     torso = fetch_api.Torso()
-    torso.set_height(fetch_api.Torso.MIN_HEIGHT)
+    arm = fetch_api.Arm()
+    torso.set_height(torso.MIN_HEIGHT)
+    gripper = fetch_api.Gripper()
+    base = fetch_api.Base()
 
     # Drop the box 
-    DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, -3.01]
-    arm = fetch_api.Arm()
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
-    gripper = fetch_api.Gripper()
+    print("Dropping the box")
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(DROP_BOX_POSE))
+    rospy.sleep(1.0)
     gripper.open()
+    rospy.sleep(0.5)
 
     # Move to intial pose
-    INITIAL_POSE = [-0.0482, 1.573, 3.091, 2.056, 3.04, 0.57, -3.01]
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
 
     # Move back 
+    print("Dropped box, backing up")
     before_pos = robot_pose.position
     after_pos = robot_pose.position
     while distance(before_pos, after_pos) < 0.2:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
-
+        
     return 0
 
 def arCallback(msg):
     global markers
     markers = msg.markers
-
 
 def poseCallback(msg):
     global robot_pose
@@ -195,7 +239,7 @@ def load(fileName):
 
     # self.actions = []
     for action in actions_json:
-        if action.action == 0:
+        if action["action"] == 0:
             arPose = Pose()
             arPose.position.x = action['ar'][0]
             arPose.position.y = action['ar'][1]
@@ -216,31 +260,29 @@ def load(fileName):
 
             grab_poses.append(['MOVE', arPose, wristPose])
 
-        elif action.action == 1:
+        elif action["action"] == 1:
             grab_poses.append(['OPEN'])
 
-        elif action.action == 2:
+        elif action["action"] == 2:
             grab_poses.append(['CLOSE'])
 
         else:
             print("Invalid action file")
             exit(0)
 
-        # self.actions.append(ActionType(ActionSaver.MOVE, action['arId'],
-        #                     arPose=arPose, wristPose=wristPose))
-
-
 
 def main():
     global pc_pub
+    global viz_pub
 
     rospy.init_node('manipulation_server')
 
     pc_pub = rospy.Publisher(CURRENT_POINT_CLOUD, PointCloud2, queue_size=10)
+    viz_pub = rospy.Publisher(MOTION_PLAN_GOAL, Marker, queue_size=10)
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
-    load(DATA_PATH + "/test.p")
+    load(DATA_PATH + "/grab_box_sim.json")
 
     rospy.Service('grab_box', GrabBox, handle_grab_box)
     print("Ready to grab boxes.")
