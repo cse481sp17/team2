@@ -64,7 +64,7 @@ def handle_grab_box(req):
     beginHeight = torso.MIN_HEIGHT
 
     # Move torso higher if on top shelf:
-    if req.ar_id == 6 or req.ar_id == 7:
+    if req.ar_id == 6 or req.ar_id == 4:
         beginHeight = 0.2
     torso.set_height(beginHeight)
 
