@@ -21,7 +21,6 @@ AR_POSE = "/ar_pose_marker"
 AMCL_POSE = "/amcl_pose"
 POINT_CLOUD = "/head_camera/depth_registered/points"
 MOTION_PLAN_GOAL = "/motion_plan_goal"
-CURRENT_POINT_CLOUD = "/current_point_cloud"
 DATA_PATH = "/home/team2/catkin_ws/src/cse481c/shuguru/data"
 INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.086, 0]
 PREPARE_POSE = [-0.0482, 1.51, 3.091, 2.056, 3.04, 0.57, 0.0]
@@ -33,7 +32,6 @@ MOVING_HEAD_POSE = [0.0,0.0]
 markers = []
 grab_poses = []
 put_poses = []
-pc_pub = None
 robot_pose = None
 
 def distance(before, after):
@@ -46,7 +44,6 @@ def handle_grab_box(req):
     """
     global markers
     global grab_poses
-    global pc_pub
     global viz_pub
     global robot_pos
     
@@ -70,26 +67,23 @@ def handle_grab_box(req):
 
     head.pan_tilt(*SHELF_HEAD_POSE)
     arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
-    rospy.sleep(1.0)
+    rospy.sleep(3.0)
 
-    # Update the Point Cloud
-    pc = rospy.wait_for_message(POINT_CLOUD, PointCloud2)
-    pc_pub.publish(pc)
-
-    # Wait 3 seconds until markers are updated
-    for i in range(3):
+    # Wait 5 seconds until markers are updated
+    target_marker = None
+    for i in range(5):
         print("Waiting for the markers... {}/3".format(i))
         if any(markers):
-            break
-        if i == 2:
+            print([marker.id for marker in markers])
+            target_marker = filter(lambda x: x.id == req.ar_id, markers)
+            if any(target_marker):
+                break
+        if i == 4:
             print("Didn't find any marker")
             arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
             rospy.sleep(1.0)
             return 1
         rospy.sleep(1.0)
-
-    # Set the target
-    target_marker = filter(lambda x: x.id == req.ar_id, markers)
 
     print [marker.id for marker in markers]
     print("Target: {}".format(req.ar_id))
@@ -173,7 +167,7 @@ def handle_grab_box(req):
     head.pan_tilt(*MOVING_HEAD_POSE)
     before_pos = robot_pose.position
     after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.15:
+    while distance(before_pos, after_pos) < 0.19:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
 
@@ -184,7 +178,6 @@ def handle_grab_box(req):
     rospy.sleep(1.0)
 
     # Empty markers for the next call
-    markers = []
     return 0
 
 
@@ -214,7 +207,7 @@ def handle_put_box(req):
     print("Dropped box, backing up")
     before_pos = robot_pose.position
     after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.15:
+    while distance(before_pos, after_pos) < 0.18:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
         
@@ -222,7 +215,8 @@ def handle_put_box(req):
 
 def arCallback(msg):
     global markers
-    markers = msg.markers
+    if len(msg.markers) > len(markers):
+        markers = msg.markers
 
 def poseCallback(msg):
     global robot_pose
@@ -278,12 +272,10 @@ def load(fileName):
 
 
 def main():
-    global pc_pub
     global viz_pub
 
     rospy.init_node('manipulation_server')
 
-    pc_pub = rospy.Publisher(CURRENT_POINT_CLOUD, PointCloud2, queue_size=10)
     viz_pub = rospy.Publisher(MOTION_PLAN_GOAL, Marker, queue_size=10)
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)

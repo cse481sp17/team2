@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="pc_topic" default="/current_point_cloud" />
+    <arg name="pc_topic" default="/head_camera/depth_registered/points" />
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
     <include file="$(find applications)/launch/navigation.launch" />
