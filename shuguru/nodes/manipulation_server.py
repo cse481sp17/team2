@@ -25,6 +25,7 @@ CURRENT_POINT_CLOUD = "/current_point_cloud"
 DATA_PATH = "/home/team2/catkin_ws/src/cse481c/shuguru/data"
 INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.086, 0]
 PREPARE_POSE = [-0.0482, 1.51, 3.091, 2.056, 3.04, 0.57, 0.0]
+CARRY_POSE = [-1.57, 0.68, 0.21, 1.08, -2.92, -1.33, 0.05]
 DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, 0.0]
 SHELF_HEAD_POSE = [0.0,0.2985]
 MOVING_HEAD_POSE = [0.0,0.0]
@@ -176,10 +177,10 @@ def handle_grab_box(req):
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
 
-    torso.set_height(torso.MIN_HEIGHT)
+    torso.set_height(torso.MAX_HEIGHT)
 
     # Set arm to initial position
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(CARRY_POSE))
     rospy.sleep(1.0)
 
     # Empty markers for the next call
