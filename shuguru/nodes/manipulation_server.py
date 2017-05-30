@@ -196,7 +196,6 @@ def handle_put_box(req):
 
     torso = fetch_api.Torso()
     arm = fetch_api.Arm()
-    torso.set_height(torso.MIN_HEIGHT)
     gripper = fetch_api.Gripper()
     base = fetch_api.Base()
 
@@ -204,6 +203,7 @@ def handle_put_box(req):
     print("Dropping the box")
     arm.move_to_joints(fetch_api.ArmJoints.from_list(DROP_BOX_POSE))
     rospy.sleep(1.0)
+    torso.set_height(torso.MIN_HEIGHT)
     gripper.open()
     rospy.sleep(0.5)
 
