@@ -11,6 +11,7 @@ from visualization_msgs.msg import Marker
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from sensor_msgs.msg import PointCloud2
 from shuguru.srv import PutBox, GrabBox
+from moveit_python import PlanningSceneInterface
 
 """
 Handles the robot action of grabbing a specifc AR tagged shoebox
@@ -43,6 +44,9 @@ grab_poses = []
 put_poses = []
 robot_pose = None
 
+# Grabber Planning Scene
+planning= PlanningSceneInterface('base_link')
+
 def distance(before, after):
     return ((before.x - after.x)**2
                 + (before.y - after.y)**2)**0.5
@@ -73,6 +77,7 @@ def handle_grab_box(req):
     global grab_poses
     global viz_pub
     global robot_pose
+    global planning
     
     arm = fetch_api.Arm()
     gripper = fetch_api.Gripper()
@@ -307,18 +312,38 @@ def load(fileName):
         else:
             print("Invalid action file")
             exit(0)
+def attach_grabber():
+    global planning
+    frame_attached_to = 'gripper_link'
+    frames_okay_to_collide_with = [ 'gripper_link',
+            'l_gripper_finger_link',
+            'r_gripper_finger_link']
+    planning.attachBox('tray', 0.3,0.2, 0.07, 0.1, 0,0,
+                        frame_attached_to,
+                        frames_okay_to_collide_with)
+    planning.setColor('tray',1,0,1)
+    planning.sendColors()
 
+def remove_grabber():
+    global planning
+    planning.removeAttachedObject('tray')
 
 def main():
     global viz_pub
+    global planning
 
     rospy.init_node('manipulation_server')
+    arm = fetch_api.Arm()
+    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
 
     viz_pub = rospy.Publisher(MOTION_PLAN_GOAL, Marker, queue_size=10)
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
     load(DATA_PATH + "/grab_box.json")
+
+    # Attach Grabber to planning Scene
+    attach_grabber()
 
     rospy.Service('grab_box', GrabBox, handle_grab_box)
     print("Ready to grab boxes.")
