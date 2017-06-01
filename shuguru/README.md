@@ -2,6 +2,7 @@
 ## Don't forget changing the symlink accordingly (simulation vs. real robot).
 
 # To start state machine in simulation
+# Change state_machine.py to refer to simulation/dests.dat
 roslaunch fetch_gazebo playground.launch
 roslaunch shuguru everything_sim.launch
 
@@ -23,7 +24,7 @@ rosrun applications pbd.py
 " Save as shoeboxes.bag"
 
 # To launch frontend with given index file
-python -m SimpleHTTPServer 8080 shuguru/frontend  
+shuguru/frontend/server.sh 
 
 Set the websocket:
     robot  ws://astro.cs.washington.edu:9090
