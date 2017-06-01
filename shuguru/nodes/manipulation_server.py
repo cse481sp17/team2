@@ -25,11 +25,18 @@ DATA_PATH = "/home/team2/catkin_ws/src/cse481c/shuguru/data"
 
 INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.086, 0]
 #PREPARE_POSE = [-0.80, 1.51, -2.84, 2.24, -1.93, 1.19, -0.75] # Sideways prepare
+
+# Move Joints Poses
 PREPARE_POSE = [-0.0482, 1.51, 3.091, 2.056, 3.04, 0.57, 0.0]
 CARRY_POSE = [-1.57, 0.68, 0.21, 1.08, -2.92, -1.33, 0.05]
 DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, 0.0]
 SHELF_HEAD_POSE = [0.0,0.2985]
 MOVING_HEAD_POSE = [0.0,0.0]
+
+# Move to pose Pose
+PREPARE = [0.372, -0.32, 0.706, 0.011, -0.014, -0.023, 1]
+CARRY = [0.25, -0.255, 0.712, 0.003, -0.006, 0.674,0.738]
+DROP = [0.277, -0.361, 0.591, -0.090, 0.304, 0.215, 0.924]
 
 markers = []
 grab_poses = []
@@ -39,6 +46,24 @@ robot_pose = None
 def distance(before, after):
     return ((before.x - after.x)**2
                 + (before.y - after.y)**2)**0.5
+
+def move_pose(arm, xyz):
+    kwargs = {
+        'allowed_planning_time': 50,
+        'execution_timeout': 40,
+        'num_planning_attempts': 30,
+        'replan': False,
+    }
+    pose_stampeda = PoseStamped()
+    pose_stampeda.header.frame_id = "base_link"
+    pose_stampeda.pose.position.x = xyz[0]
+    pose_stampeda.pose.position.y = xyz[1]
+    pose_stampeda.pose.position.z = xyz[2]
+    pose_stampeda.pose.orientation.x = xyz[3]
+    pose_stampeda.pose.orientation.y = xyz[4]
+    pose_stampeda.pose.orientation.z = xyz[5]
+    pose_stampeda.pose.orientation.w =  xyz[6]
+    arm.move_to_pose(pose_stampeda, **kwargs)
 
 def handle_grab_box(req):
     """ 
@@ -62,23 +87,8 @@ def handle_grab_box(req):
     gripper.open()
     beginHeight = torso.MIN_HEIGHT
 
-    # Navigate the arm there
-    kwargs = {
-        'allowed_planning_time': 50,
-        'execution_timeout': 40,
-        'num_planning_attempts': 30,
-        'replan': False,
-    }
-    pose_stampeda = PoseStamped()
-    pose_stampeda.header.frame_id = "base_link"
-    pose_stampeda.pose.position.x = 0.372
-    pose_stampeda.pose.position.y = -0.320
-    pose_stampeda.pose.position.z = 0.706
-    pose_stampeda.pose.orientation.x = 0.011
-    pose_stampeda.pose.orientation.y = -0.014
-    pose_stampeda.pose.orientation.z = -0.023
-    pose_stampeda.pose.orientation.w =  1.000
-    arm.move_to_pose(pose_stampeda, **kwargs)
+    # Navigate the arm to prepare
+    move_pose(arm, PREPARE)
 #    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
 
     # Move torso higher if on top shelf:
@@ -100,7 +110,9 @@ def handle_grab_box(req):
                 break
         if i == 4:
             print("Didn't find any marker")
-            arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+            #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+            torso.set_height(torso.MAX_HEIGHT)
+            move_pose(arm, CARRY)
             rospy.sleep(1.0)
             return 1
         rospy.sleep(1.0)
@@ -111,7 +123,9 @@ def handle_grab_box(req):
     if not any(target_marker):
         print("Didn't find the target marker")
         markers = []
-        arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+        #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+        torso.set_height(torso.MAX_HEIGHT)
+        move_pose(arm, CARRY)
         rospy.sleep(1.0)
         return 1
 
@@ -167,8 +181,9 @@ def handle_grab_box(req):
                 rospy.loginfo('Moved to the target marker')
             else:
                 rospy.logwarn('Failed to move to the target marker')
-                torso.set_height(torso.MIN_HEIGHT)
-                arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+                torso.set_height(torso.MAX_HEIGHT)
+                move_pose(arm, CARRY)
+                #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
                 return 1
 
             rospy.sleep(1.0)
@@ -196,16 +211,7 @@ def handle_grab_box(req):
 
     # Set arm to initial position
     # arm.move_to_joints(fetch_api.ArmJoints.from_list(CARRY_POSE))
-    pose_stamped = PoseStamped()
-    pose_stamped.header.frame_id = "base_link"
-    pose_stamped.pose.position.x = 0.250
-    pose_stamped.pose.position.y = -0.255
-    pose_stamped.pose.position.z = 0.712
-    pose_stamped.pose.orientation.x = 0.003
-    pose_stamped.pose.orientation.y = -0.006
-    pose_stamped.pose.orientation.z = 0.674
-    pose_stamped.pose.orientation.w =  0.738
-    arm.move_to_pose(pose_stamped, **kwargs)
+    move_pose(arm, CARRY)
 
     # Empty markers for the next call
     return 0
@@ -225,39 +231,14 @@ def handle_put_box(req):
     # Drop the box 
     print("Dropping the box")
     # arm.move_to_joints(fetch_api.ArmJoints.from_list(DROP_BOX_POSE))
-    kwargs = {
-        'allowed_planning_time': 50,
-        'execution_timeout': 40,
-        'num_planning_attempts': 30,
-        'replan': False,
-    }
-    pose_stamped = PoseStamped()
-    pose_stamped.header.frame_id = "base_link"
-    pose_stamped.pose.position.x = 0.277
-    pose_stamped.pose.position.y = -0.361
-    pose_stamped.pose.position.z = 0.591
-    pose_stamped.pose.orientation.x = -0.090
-    pose_stamped.pose.orientation.y = 0.304
-    pose_stamped.pose.orientation.z = 0.215
-    pose_stamped.pose.orientation.w =  0.924
-    arm.move_to_pose(pose_stamped, **kwargs)
+    move_pose(arm, DROP)
     rospy.sleep(1.0)
     gripper.open()
     rospy.sleep(0.5)
     #torso.set_height(torso.MIN_HEIGHT)
     
     # Move to carry pose
-    pose_stamped = PoseStamped()
-    pose_stamped.header.frame_id = "base_link"
-    pose_stamped.pose.position.x = 0.250
-    pose_stamped.pose.position.y = -0.255
-    pose_stamped.pose.position.z = 0.712
-    pose_stamped.pose.orientation.x = 0.003
-    pose_stamped.pose.orientation.y = -0.006
-    pose_stamped.pose.orientation.z = 0.674
-    pose_stamped.pose.orientation.w =  0.738
-    arm.move_to_pose(pose_stamped, **kwargs)
-
+    move_pose(arm, CARRY)
     #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
 
     # Move back 

@@ -80,7 +80,13 @@ class Arm(object):
         goal = goal_builder.build()
 
         self.moveGroupAction.send_goal(goal)
-        self.moveGroupAction.wait_for_result(rospy.Duration(execution_timeout))
+        res = self.moveGroupAction.wait_for_result(rospy.Duration(execution_timeout))
+        # Check res of timeout if timeouts -> continues see what wait_for _result returns
+
+        if not res:
+            # Failed by timing out -> 
+            return 'FAILED'
+
         result = self.moveGroupAction.get_result()
         if not result is None:
             s_res =  moveit_error_string(result.error_code.val) 

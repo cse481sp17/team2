@@ -131,10 +131,11 @@
       if (typeof SendOrderShoe == "function") {
         SendOrderShoe(shoes[name].sizes[size].id, seat);
         AlertUser("Ordered a "+size+" "+name+" to "+seatname, "alert-success");
+        shoes[name].sizes[size+" - Out of Stock"] = shoes[name].sizes[size];
         delete shoes[name].sizes[size];
-        if (Object.keys(shoes[name].sizes).length == 0) {
-          delete shoes[name];
-        }
+       // if (Object.keys(shoes[name].sizes).length == 0) {
+       //   delete shoes[name];
+       // }
         SetupForm();
       } else {
         AlertUser("Interface not ready", "alert-danger");
