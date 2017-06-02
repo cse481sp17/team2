@@ -215,11 +215,6 @@ def handle_grab_box(req):
 
     # Back up the base, set torso back down and head back up
     head.pan_tilt(*MOVING_HEAD_POSE)
-    """
-    while distance(before_pos, after_pos) < 0.19:
-        after_pos = robot_pose.position
-        base.move(-0.1, 0.0)
-    """
     move_dist(0.19, -0.1)
 
     torso.set_height(torso.MAX_HEIGHT)
@@ -245,16 +240,13 @@ def handle_put_box(req):
 
     # Drop the box 
     print("Dropping the box")
-    # arm.move_to_joints(fetch_api.ArmJoints.from_list(DROP_BOX_POSE))
     move_pose(arm, DROP)
     rospy.sleep(1.0)
     gripper.open()
     rospy.sleep(0.5)
-    #torso.set_height(torso.MIN_HEIGHT)
     
     # Move to carry pose
     move_pose(arm, CARRY)
-    #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
 
     # Move back 
     print("Dropped box, backing up")
@@ -322,6 +314,7 @@ def load(fileName):
         else:
             print("Invalid action file")
             exit(0)
+
 def attach_grabber():
     global planning
     frame_attached_to = 'gripper_link'
@@ -343,6 +336,8 @@ def main():
     global planning
 
     rospy.init_node('manipulation_server')
+
+    # Attach Grabber to planning Scene
     remove_grabber()
     attach_grabber()
 
@@ -358,7 +353,6 @@ def main():
     load(DATA_PATH + "/grab_box_6_2b.json")
 
 
-    # Attach Grabber to planning Scene
 
     rospy.Service('grab_box', GrabBox, handle_grab_box)
     print("Ready to grab boxes.")
@@ -366,7 +360,6 @@ def main():
     print("Ready to put boxes.")
 
     rospy.spin()
-
 
 if __name__ == "__main__":
     main()

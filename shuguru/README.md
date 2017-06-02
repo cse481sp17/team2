@@ -7,8 +7,8 @@ roslaunch fetch_gazebo playground.launch
 roslaunch shuguru everything_sim.launch
 
 # To start state machine on real robot
-roslaunch shuguru everything.launch
-roslaunch shuguru visualization.launch
+roslaunch shuguru everything.launch (on robot)
+roslaunch shuguru visualization.launch (on local but robot is astro)
 
 
 # To save destinations
@@ -18,13 +18,15 @@ roslaunch applications navigation.launch map_file:=$(rospack find shuguru)/maps/
 " Save as dests.dat"
 
 # To save poses for grabbing boxes
-roslaunch applications reach_ar_markers.launch pc_bag:=$(rospack find shuguru)/data/shoeboxes.bag
+roslaunch perception save_cloud training.bag (on astro)
+roslaunch applications reach_ar_markers.launch pc_bag:=$(rospack find shuguru)/data/training.bag (set robot astro)
 rosrun applications pbd.py
 
-" Save as shoeboxes.bag"
+" Save as grab_box_date.bag" under shuguru/data
+Refer to it in shuguru/manipulation_server.py
 
 # To launch frontend with given index file
-shuguru/frontend/server.sh 
+shuguru/frontend/server.sh (setrobot astro)
 
 Set the websocket:
     robot  ws://astro.cs.washington.edu:9090
