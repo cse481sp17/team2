@@ -24,11 +24,10 @@ POINT_CLOUD = "/head_camera/depth_registered/points"
 MOTION_PLAN_GOAL = "/motion_plan_goal"
 DATA_PATH = "/home/team2/catkin_ws/src/cse481c/shuguru/data"
 
-INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.086, 0]
-#PREPARE_POSE = [-0.80, 1.51, -2.84, 2.24, -1.93, 1.19, -0.75] # Sideways prepare
-
 # Move Joints Poses
+INITIAL_POSE = [1.32,1.4, -0.2, 1.72, 0,1.086, 0]
 PREPARE_POSE = [-0.0482, 1.51, 3.091, 2.056, 3.04, 0.57, 0.0]
+#PREPARE_POSE = [-0.80, 1.51, -2.84, 2.24, -1.93, 1.19, -0.75] # Sideways prepare
 CARRY_POSE = [-1.57, 0.68, 0.21, 1.08, -2.92, -1.33, 0.05]
 DROP_BOX_POSE = [-0.115, 1.432, 2.97, 1.91, 3.06, 1.10, 0.0]
 SHELF_HEAD_POSE = [0.0,0.2985]
@@ -50,6 +49,17 @@ planning= PlanningSceneInterface('base_link')
 def distance(before, after):
     return ((before.x - after.x)**2
                 + (before.y - after.y)**2)**0.5
+
+def move_dist(dist, speed):  
+    """
+    Move a dist direction based on speed
+    """
+    base = fetch_api.Base()
+    before_pos = robot_pose.position
+    after_pos = robot_pose.position
+    while distance(before_pos, after_pos) < dist:
+        after_pos = robot_pose.position
+        base.move(speed, 0.0)
 
 def move_pose(arm, xyz):
     kwargs = {
@@ -90,11 +100,10 @@ def handle_grab_box(req):
 
     # Move the arm, gripper, toros and head to initial position
     gripper.open()
-    beginHeight = torso.MIN_HEIGHT
+    beginHeight = 0.1
 
     # Navigate the arm to prepare
     move_pose(arm, PREPARE)
-#    arm.move_to_joints(fetch_api.ArmJoints.from_list(PREPARE_POSE))
 
     # Move torso higher if on top shelf:
     if req.ar_id == 6 or req.ar_id == 4:
@@ -115,7 +124,7 @@ def handle_grab_box(req):
                 break
         if i == 4:
             print("Didn't find any marker")
-            #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+            move_dist(0.1, -0.1)
             torso.set_height(torso.MAX_HEIGHT)
             move_pose(arm, CARRY)
             rospy.sleep(1.0)
@@ -128,7 +137,7 @@ def handle_grab_box(req):
     if not any(target_marker):
         print("Didn't find the target marker")
         markers = []
-        #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+        move_dist(0.1, -0.1)
         torso.set_height(torso.MAX_HEIGHT)
         move_pose(arm, CARRY)
         rospy.sleep(1.0)
@@ -186,9 +195,9 @@ def handle_grab_box(req):
                 rospy.loginfo('Moved to the target marker')
             else:
                 rospy.logwarn('Failed to move to the target marker')
+                move_dist(0.1, -0.1)
                 torso.set_height(torso.MAX_HEIGHT)
                 move_pose(arm, CARRY)
-                #arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
                 return 1
 
             rospy.sleep(1.0)
@@ -206,16 +215,16 @@ def handle_grab_box(req):
 
     # Back up the base, set torso back down and head back up
     head.pan_tilt(*MOVING_HEAD_POSE)
-    before_pos = robot_pose.position
-    after_pos = robot_pose.position
+    """
     while distance(before_pos, after_pos) < 0.19:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
+    """
+    move_dist(0.19, -0.1)
 
     torso.set_height(torso.MAX_HEIGHT)
 
     # Set arm to initial position
-    # arm.move_to_joints(fetch_api.ArmJoints.from_list(CARRY_POSE))
     move_pose(arm, CARRY)
 
     # Empty markers for the next call
@@ -318,7 +327,7 @@ def attach_grabber():
     frames_okay_to_collide_with = [ 'gripper_link',
             'l_gripper_finger_link',
             'r_gripper_finger_link']
-    planning.attachBox('tray', 0.3,0.2, 0.07, 0.1, 0,0,
+    planning.attachBox('tray', 0.34,0.3, 0.14, 0.22, 0,0.03,
                         frame_attached_to,
                         frames_okay_to_collide_with)
     planning.setColor('tray',1,0,1)
@@ -333,8 +342,13 @@ def main():
     global planning
 
     rospy.init_node('manipulation_server')
+    remove_grabber()
+    attach_grabber()
+
+    torso = fetch_api.Torso()
     arm = fetch_api.Arm()
-    arm.move_to_joints(fetch_api.ArmJoints.from_list(INITIAL_POSE))
+    torso.set_height(torso.MAX_HEIGHT)
+    move_pose(arm, CARRY)
 
     viz_pub = rospy.Publisher(MOTION_PLAN_GOAL, Marker, queue_size=10)
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
@@ -342,8 +356,8 @@ def main():
 
     load(DATA_PATH + "/grab_box.json")
 
+
     # Attach Grabber to planning Scene
-    attach_grabber()
 
     rospy.Service('grab_box', GrabBox, handle_grab_box)
     print("Ready to grab boxes.")
