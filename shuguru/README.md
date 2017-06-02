@@ -19,10 +19,12 @@ roslaunch applications navigation.launch map_file:=$(rospack find shuguru)/maps/
 
 # To save poses for grabbing boxes
 roslaunch perception save_cloud training.bag (on astro)
+scp (location of training.bag) team2@roomba.cs.washington.edu:~/catkin_ws/src/cse481c/shuguru/data/
 roslaunch applications reach_ar_markers.launch pc_bag:=$(rospack find shuguru)/data/training.bag (set robot astro)
-rosrun applications pbd.py
-
+rosrun applications pbd.py (on local)
 " Save as grab_box_date.bag" under shuguru/data
+scp (location of .json) team2@roomba.cs.washington.edu:~/catkin_ws/src/cse481c/shuguru/data
+
 Refer to it in shuguru/manipulation_server.py
 
 # To launch frontend with given index file

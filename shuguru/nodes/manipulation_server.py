@@ -378,7 +378,7 @@ def main():
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
-    load(DATA_PATH + "/grab_box_6_2b.json")
+    load(DATA_PATH + "/grab_box_6_3b.json")
 
 
 
