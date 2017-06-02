@@ -89,6 +89,9 @@ def handle_grab_box(req):
     global robot_pose
     global planning
     
+    # Attach the floor before doing any movements
+    attach_floor()
+    
     arm = fetch_api.Arm()
     gripper = fetch_api.Gripper()
     torso = fetch_api.Torso()
@@ -233,6 +236,9 @@ def handle_put_box(req):
     """
     global put_poses
 
+    # Remove the planning floor, since we don't want it to get in the way
+    remove_floor()
+
     torso = fetch_api.Torso()
     arm = fetch_api.Arm()
     gripper = fetch_api.Gripper()
@@ -327,6 +333,27 @@ def attach_grabber():
     planning.setColor('tray',1,0,1)
     planning.sendColors()
 
+def attach_floor():
+    global planning
+    frame_attached_to = 'base_link'
+    frames_okay_to_collide_with = ['base_link',
+            'l_wheel_link',
+            'r_wheel_link',
+            'estop_link',
+            'torso_fixed_link',
+            'laser_link',
+            'torso_lift_link']
+    planning.attachBox('floor', 1, 1, .3, 0, 0, 0,
+                        frame_attached_to,
+                        frames_okay_to_collide_with)
+    planning.setColor('floor',1,0,1)
+    planning.sendColors()
+
+def remove_floor():
+    global planning
+    planning.removeAttachedObject('floor')
+
+
 def remove_grabber():
     global planning
     planning.removeAttachedObject('tray')
@@ -339,6 +366,7 @@ def main():
 
     # Attach Grabber to planning Scene
     remove_grabber()
+    remove_floor()
     attach_grabber()
 
     torso = fetch_api.Torso()
