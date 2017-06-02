@@ -100,7 +100,7 @@ def handle_grab_box(req):
 
     # Move the arm, gripper, toros and head to initial position
     gripper.open()
-    beginHeight = 0.1
+    beginHeight = 0.0
 
     # Navigate the arm to prepare
     move_pose(arm, PREPARE)
@@ -228,6 +228,7 @@ def handle_grab_box(req):
     move_pose(arm, CARRY)
 
     # Empty markers for the next call
+    markers = []
     return 0
 
 
@@ -354,7 +355,7 @@ def main():
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
-    load(DATA_PATH + "/grab_box.json")
+    load(DATA_PATH + "/grab_box_6_2b.json")
 
 
     # Attach Grabber to planning Scene
