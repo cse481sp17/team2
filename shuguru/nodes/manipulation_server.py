@@ -103,7 +103,7 @@ def handle_grab_box(req):
 
     # Move the arm, gripper, toros and head to initial position
     gripper.open()
-    beginHeight = 0.0
+    beginHeight = 0.1
 
     # Navigate the arm to prepare
     move_pose(arm, PREPARE)
@@ -258,7 +258,7 @@ def handle_put_box(req):
     print("Dropped box, backing up")
     before_pos = robot_pose.position
     after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.18:
+    while distance(before_pos, after_pos) < 0.30:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
         
@@ -266,7 +266,7 @@ def handle_put_box(req):
 
 def arCallback(msg):
     global markers
-    if len(msg.markers) > len(markers):
+    if len(msg.markers) >= len(markers):
         markers = msg.markers
 
 def poseCallback(msg):
@@ -378,7 +378,7 @@ def main():
     ar_sub = rospy.Subscriber(AR_POSE, AlvarMarkers, arCallback)
     pose_sub = rospy.Subscriber(AMCL_POSE, PoseWithCovarianceStamped, poseCallback)
 
-    load(DATA_PATH + "/grab_box_6_3b.json")
+    load(DATA_PATH + "/grab_box.json")
 
 
 
