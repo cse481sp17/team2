@@ -258,7 +258,7 @@ def handle_put_box(req):
     print("Dropped box, backing up")
     before_pos = robot_pose.position
     after_pos = robot_pose.position
-    while distance(before_pos, after_pos) < 0.30:
+    while distance(before_pos, after_pos) < 0.50:
         after_pos = robot_pose.position
         base.move(-0.1, 0.0)
         
