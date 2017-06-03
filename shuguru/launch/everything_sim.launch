@@ -1,7 +1,7 @@
 <launch>
 
     <arg name="pc_topic" default="/mock_point_cloud" />
-    <arg name="pc_bag" default="$(find shuguru)/data/simulation/shelf_2x2_boxes.bag" />
+    <arg name="pc_bag" default="$(find shuguru)/data/simulation/shelf.bag" />
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
     <include file="$(find applications)/launch/navigation_sim.launch" />
